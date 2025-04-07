@@ -7,8 +7,10 @@
         </div>
         <div class="nav-items">
           <router-link to="/">首页</router-link>
-          <router-link to="/second-hand">二手交易</router-link>
-          <router-link to="/rental">物品租借</router-link>
+          <router-link to="/show">买</router-link>
+          <router-link to="/buy">卖</router-link>
+          <router-link to="/lend">租</router-link>
+          <router-link to="/borrow">借</router-link>
           <button class="publish-btn" @click="handlePublish">发布物品</button>
           <router-link to="/login" class="login-btn">登录/注册</router-link>
         </div>
@@ -190,10 +192,13 @@
   
 <style scoped>
   .container {
-    max-width: 1200px;
-    margin: 0 auto;
+    width: 100%;
+    min-height: 100vh; /* 确保容器至少撑满视口高度 */
+    max-width: 1200px; /* 保留内容区域最大宽度 */
+    margin: 0 auto;    /* 水平居中 */
     padding: 0 20px;
-    font-family: 'Arial', sans-serif;
+    display: flex;     /* 启用 Flex 布局 */
+    flex-direction: column; /* 垂直方向排列子元素 */
   }
   
   .nav-bar {

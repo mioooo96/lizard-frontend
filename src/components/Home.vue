@@ -1,0 +1,409 @@
+<template>
+    <div class="container">
+      <!-- 导航栏 -->
+      <nav class="nav-bar">
+        <div class="logo">
+          <h1>西易平台</h1>
+        </div>
+
+        <!-- 搜索栏 -->
+        <div class="search-box">
+          <div class="search-input-wrapper">
+            <input
+              type="text"
+              placeholder="搜索商品或服务..."
+              v-model="searchKeyword"
+              @keyup.enter="handleSearch"
+              class="search-input"
+            >
+            <button class="search-btn" @click="handleSearch">
+              <svg class="search-icon" viewBox="0 0 24 24">
+                <path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 0 0 1.48-5.34c-.47-2.78-2.79-5-5.59-5.34a6.505 6.505 0 0 0-7.27 7.27c.34 2.8 2.56 5.12 5.34 5.59a6.5 6.5 0 0 0 5.34-1.48l.27.28v.79l4.25 4.25c.41.41 1.08.41 1.49 0 .41-.41.41-1.08 0-1.49L15.5 14zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="nav-items">
+          <router-link to="/">首页</router-link>
+          <router-link to="/show">卖出</router-link>
+          <router-link to="/buy">买入</router-link>
+          <router-link to="/lend">租出</router-link>
+          <router-link to="/borrow">借入</router-link>
+          <button class="publish-btn" @click="handlePublish">发布物品</button>
+          <!-- 登录状态显示 -->
+          <div v-if="isLoggedIn" class="user-info">
+           <div class="avatar-container" @click="goToProfile">
+          <!-- 显示用户头像，使用默认头像示例 -->
+            <img 
+            :src="userAvatar" 
+            class="user-avatar"
+            alt="用户头像"
+            >
+           </div>
+          </div>
+  
+          <router-link 
+          v-else 
+          to="/login" 
+          class="login-btn"
+          >
+          登录/注册
+          </router-link>
+        </div>
+      </nav>
+  
+  
+      <!-- 商品展示区 -->
+      <div class="product-section">
+        <h2 class="section-title">最新商品</h2>
+        <div class="product-list">
+          <div 
+            v-for="product in products"
+            :key="product.id"
+            class="product-card"
+            @click="handleProductClick(product)"
+          >
+          <!-- 新增类型标签 -->
+          <div class="type-tag" :class="'type-' + product.Ptype">
+            {{ product.Ptype }} <!-- 显示类型文字 -->
+          </div>
+
+          <div class="product-image-wrapper">
+            <img :src="product.image" class="product-image" alt="商品图片">
+          </div>
+          <div class="product-info">
+            <h3>{{ product.title }}</h3>
+            <p class="price">{{ product.price }}元/{{ product.unit }}</p>
+            <p class="description">{{ product.description }}</p>
+          </div>
+        </div>
+        </div>
+      </div>
+  
+      <!-- 底部信息 -->
+      <footer class="footer">
+        <p>&copy; 2025 西易平台 版权所有</p>
+        <div class="footer-links">
+          <router-link to="/about">关于我们</router-link>
+          <router-link to="/terms">服务条款</router-link>
+          <router-link to="/contact">联系我们</router-link>
+        </div>
+      </footer>
+    </div>
+  </template>
+  
+<script lang="ts" setup name="Home">
+  import { ref,computed,onMounted,onUnmounted } from 'vue'
+  import {useRouter} from 'vue-router'
+  import {type ProductInter,type Products} from '@/types'
+  
+  const searchKeyword = ref('')
+  const isLoggedIn = ref(false)
+  const router = useRouter()
+  
+  const products = ref<Products>([
+    {
+      id: 1,
+      title: '九成新智能手机',
+      price: 1200,
+      unit: '',
+      description: '华为Mate40，保护完好，功能正常',
+      image: 'https://picx.zhimg.com/v2-e7dd8094bcac3702785d157792651690_r.jpg?source=2c26e567',
+      Ptype: "卖"
+    },
+    {
+      id: 2,
+      title: '星铁二手号',
+      price: 12,
+      unit: '天',
+      description: '满命账号',
+      image: 'https://img0.baidu.com/it/u=916732440,3057481842&fm=253&fmt=auto&app=120&f=JPEG?w=800&h=500',
+      Ptype: "租"
+    },
+    {
+      id: 2,
+      title: '我的世界',
+      price: 12,
+      unit: '天',
+      description: '游戏',
+      image: 'https://img1.baidu.com/it/u=1964365371,1566431102&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500',
+      Ptype: "买"
+    },
+    {
+      id: 2,
+      title: 'It\'s MyGo!!!!!',
+      price: 12,
+      unit: '天',
+      description: '满命账号',
+      image: 'https://img2.baidu.com/it/u=1460146858,1748558553&fm=253&fmt=auto&app=120&f=JPEG?w=868&h=500',
+      Ptype: "借"
+    },
+    {
+      id: 2,
+      title: 'Ave Mujica',
+      price: 12,
+      unit: '天',
+      description: '满命账号',
+      image: 'https://img0.baidu.com/it/u=522614871,2801739268&fm=253&fmt=auto&app=120&f=JPEG?w=866&h=500',
+      Ptype: "租"
+    }
+  ])
+  
+  const handleSearch = () => {
+    console.log('搜索关键词:', searchKeyword.value)
+  }
+  
+  const handlePublish = () => {
+    console.log('跳转到发布页面')
+  }
+  
+  const handleProductClick = (product: ProductInter) => {
+    console.log('查看商品详情:', product.title)
+  }
+
+  // 用户头像（示例使用随机头像）
+const userAvatar = computed(() => {
+  // 实际项目中应从用户数据获取
+  return 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + 
+    (localStorage.getItem('username') || 'user')
+})
+
+  // 检查登录状态
+  const checkLoginStatus = () => {
+    isLoggedIn.value = localStorage.getItem('isLoggedIn') === 'true'
+  }
+
+  // 跳转到个人中心
+  const goToProfile = () => {
+    router.push('/user')
+  }
+
+  // 初始化检查
+  onMounted(() => {
+    checkLoginStatus()
+    // 监听storage变化（用于其他页面登录后的状态同步）
+    window.addEventListener('storage', checkLoginStatus)
+  })
+
+  // 移除监听器
+  onUnmounted(() => {
+   window.removeEventListener('storage', checkLoginStatus)
+  })
+</script>
+  
+<style scoped>
+  .container {
+    width: 100%;
+    min-height: 100vh; /* 确保容器至少撑满视口高度 */
+    max-width: 1200px; /* 保留内容区域最大宽度 */
+    margin: 0 auto;    /* 水平居中 */
+    padding: 0 20px;
+    display: flex;     /* 启用 Flex 布局 */
+    flex-direction: column; /* 垂直方向排列子元素 */
+  }
+  
+  .nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .logo h1 {
+    color: #2c3e50;
+    margin: 0;
+  }
+  
+  .nav-items {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+  }
+  
+  .nav-items a {
+    color: #34495e;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+  }
+  
+  .nav-items a:hover {
+    color: #00aaff;
+  }
+  
+  .publish-btn {
+    background: #00aaff;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .publish-btn:hover {
+    background: #0090e0;
+  }
+  
+  .search-box {
+    margin: 20px 0;
+    width: 400px;
+  }
+  
+  .search-input-wrapper {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: 12px 20px;
+    border: 2px solid #ddd;
+    border-radius: 25px;
+    font-size: 16px;
+    padding-right: 25px;
+  }
+  
+  .search-btn {
+    position: absolute;
+    right: 0px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0px;
+  }
+  
+  .search-icon {
+    width: 24px;
+    height: 24px;
+    fill: #666;
+  }
+  
+  .product-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 30px;
+    margin: 30px 0;
+  }
+  
+  .product-card {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.3s;
+    cursor: pointer;
+  }
+  
+  .product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  
+  .product-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+  }
+  
+  .product-info {
+    padding: 15px;
+    background: white;
+  }
+  
+  .price {
+    color: #e4393c;
+    font-weight: bold;
+    font-size: 1.2em;
+    margin: 10px 0;
+  }
+  
+  .section-title {
+    color: #333;
+    border-left: 4px solid #00aaff;
+    padding-left: 10px;
+    margin: 30px 0;
+  }
+  
+  .footer {
+    margin-top: 50px;
+    padding: 30px 0;
+    border-top: 1px solid #eee;
+    text-align: center;
+    color: #666;
+  }
+  
+  .footer-links {
+    margin-top: 15px;
+  }
+  
+  .footer-links a {
+    margin: 0 15px;
+    color: #666;
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+  
+  .footer-links a:hover {
+    color: #00aaff;
+  }
+
+  .product-card {
+    position: relative; /* 为绝对定位标签提供参照 */
+  /* 原有其他样式保持不变 */
+  }
+
+  .type-tag {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: white;
+  font-weight: bold;
+  z-index: 2;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  
+  /* 不同交易类型颜色 */
+  &.type-买 { background: #f39c12; }
+  &.type-卖 { background: #e74c3c; }
+  &.type-租 { background: #3498db; }
+  &.type-借 { background: #2ecc71; }
+  
+  /* 可选：添加文字阴影提升可读性 */
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+
+  /* 用户头像样式 */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #00aaff;
+  transition: transform 0.3s ease;
+}
+
+.user-avatar:hover {
+  transform: scale(1.1);
+}
+
+.login-btn {
+  /* 保持原有登录按钮样式 */
+}
+</style>

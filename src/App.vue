@@ -1,7 +1,7 @@
 <template>
-    <version_1/>
+  <router-view/>
 </template>
 
 <script setup lang="ts" name="App">
-    import version_1 from './components/version_1.vue'
+  import Home from "./components/Home.vue"
 </script>
