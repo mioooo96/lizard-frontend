@@ -1,0 +1,10 @@
+第一次修改
+    1.重新整理了买卖租借页面，使用统一的PagesTemplate组件 
+    文件地址："src\components\PagesTemplate.vue"
+    2.将所使用的测试数据Products用pinia包装起来（相当于全局变量）以后使用
+    只需要引入defineStore创建对应的Store实例对象，通过'.'来访问其中的数据
+    相关文件："src\store\Products.ts"
+    3.修改页面标签中的logo以及页面标签名
+    4.使用router.resolve和Windows.open方法实现点击产品后打开新标签页的效果
+    5.新增个人信息页面，采用二级路由的形式，后续只需要在
+    user文件夹中编写对应的页面即可

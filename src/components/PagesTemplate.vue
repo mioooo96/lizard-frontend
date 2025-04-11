@@ -1,3 +1,4 @@
+<!-- 此页为四种功能的共同模板减少代码量 -->
 <template>
     <div class="container">
       <!-- 导航栏 -->
@@ -52,6 +53,7 @@
           </router-link>
         </div>
       </nav>
+  
       <!-- 商品展示区 -->
       <div class="product-section">
         <h2 class="section-title">最新商品</h2>
@@ -91,12 +93,12 @@
     </div>
   </template>
   
-<script lang="ts" setup name="Home">
+<script lang="ts" setup name="PagesTemplate">
   import { ref,computed,onMounted,onUnmounted } from 'vue'
   import {useRouter} from 'vue-router'
   import {type ProductInter,type Products} from '@/types'
   import { useProductsStore } from '@/store/Products'
-  
+
   const Props = defineProps(['Ptype'])
   const ProductsStore = useProductsStore()
   const products = ProductsStore.getProductsByPtype(Props.Ptype)
@@ -113,7 +115,7 @@
   }
   
   const handleProductClick = (product: ProductInter) => {
-    const route1 = router.resolve({
+    router.push({
       path:'/ProductDetail',
       query:{
         id: product.id,
@@ -124,8 +126,7 @@
         image: product.image,
         Ptype:product.Ptype
       }
-    });
-  window.open(route1.href, '_blank'); // 新标签页打开
+    })
   }
 
   // 用户头像（示例使用随机头像）
@@ -142,7 +143,7 @@ const userAvatar = computed(() => {
 
   // 跳转到个人中心
   const goToProfile = () => {
-    router.push('/user/personalInfo')
+    router.push('/user')
   }
 
   // 初始化检查
@@ -372,5 +373,4 @@ const userAvatar = computed(() => {
 .login-btn {
   /* 保持原有登录按钮样式 */
 }
-
 </style>

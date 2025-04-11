@@ -9,6 +9,12 @@ import Buy from '@/components/Buy.vue'
 import Borrow from '@/components/Borrow.vue'
 import Lend from '@/components/Lend.vue'
 import User from '@/components/User.vue'
+import ProductDetail from '@/components/ProductDetail.vue'
+import PersonalInfo from '@/user/personalInfo.vue'
+import ProductRecord from '@/user/productRecord.vue'
+import TransactionRecord from '@/user/TransactionRecord.vue'
+import ChangeInfo from '@/user/changeInfo.vue'
+
 
 const routes = [
   {
@@ -58,7 +64,34 @@ const routes = [
   {
     path: '/user',
     name: 'User',
-    component:User
+    component:User,
+    children:[
+      {
+        path:'changeInfo',
+        name:'changeInfo',
+        component:ChangeInfo
+      },
+      {
+        path:'personalInfo',
+        name:'personalInfo',
+        component:PersonalInfo
+      },
+      {
+        path:'productRecord',
+        name:'productRecord',
+        component:ProductRecord
+      },
+      {
+        path:'transactionRecord',
+        name:'transactionRecord',
+        component:TransactionRecord
+      }
+    ]
+  },
+  {
+    path:'/productDetail',
+    name:'ProductDetail',
+    component:ProductDetail
   }
   // 添加更多路由...
 ]
