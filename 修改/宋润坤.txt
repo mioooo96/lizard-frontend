@@ -1,0 +1,9 @@
+2025.12.04
+    完成了个人信息显示和个人信息修改界面
+    注意上传图片可以用
+    const reader = new FileReader();
+    reader.onload = () => {
+         user.avatar = reader.result as string; // 将 Base64 数据赋值给用户头像
+    };
+    reader.readAsDataURL(file);
+    这样获得的BASE64图片可以直接传给后端数据库存储

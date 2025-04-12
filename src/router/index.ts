@@ -10,10 +10,10 @@ import Borrow from '@/components/Borrow.vue'
 import Lend from '@/components/Lend.vue'
 import User from '@/components/User.vue'
 import ProductDetail from '@/components/ProductDetail.vue'
-import PersonalInfo from '@/user/personalInfo.vue'
-import ProductRecord from '@/user/productRecord.vue'
+import PersonalInfo from '@/user/PersonalInfo.vue'
+import ProductRecord from '@/user/ProductRecord.vue'
 import TransactionRecord from '@/user/TransactionRecord.vue'
-import ChangeInfo from '@/user/changeInfo.vue'
+import ChangeInfo from '@/user/ChangeInfo.vue'
 
 
 const routes = [
