@@ -55,8 +55,8 @@
       </nav>
   
       <!-- 商品展示区 -->
-      <div class="product-section">
-        <h2 class="section-title">最新商品</h2>
+      <h2 class="section-title">最新商品</h2>
+      <div class="product-section" @scroll="handleScroll">
         <div class="product-list">
           <div 
             v-for="product in products"
@@ -101,10 +101,17 @@
 
   const Props = defineProps(['Ptype'])
   const ProductsStore = useProductsStore()
-  const products = ProductsStore.getProductsByPtype(Props.Ptype)
+  //const products = ProductsStore.getProductsByPtype(Props.Ptype)
   const searchKeyword = ref('')
   const isLoggedIn = ref(false)
   const router = useRouter()
+  const loading = ref(false)
+  const noMore = ref(false)
+  let page = 1
+  const pageSize = 8
+  let productTimestamp = Date.now()
+  
+  const products = ref<ProductInter[]>([])
  
   const handleSearch = () => {
     console.log('搜索关键词:', searchKeyword.value)
@@ -129,6 +136,46 @@
     })
   }
 
+  // 滚动处理
+  const handleScroll = (e: Event) => {
+    const container = e.target as HTMLElement
+    const { scrollTop, scrollHeight, clientHeight } = container
+    if (scrollHeight - (scrollTop + clientHeight) < 50) {
+      loadMore()
+    }
+  }
+  
+  // 加载更多数据
+  const loadMore = async () => {
+  if (loading.value || noMore.value) return;
+
+  loading.value = true;
+  await new Promise(resolve => setTimeout(resolve, 800));
+
+  const newData = generateMockData(pageSize);
+  products.value = [...products.value, ...newData];
+
+  if (newData.length < pageSize) {
+    noMore.value = true;
+  }
+  if (page >= 5) noMore.value = true
+  page++;
+  loading.value = false;
+};
+
+const generateMockData = (count: number): ProductInter[] => {
+  const types = ['买', '卖', '租', '借'];
+  return Array.from({ length: count }, (_, i) => ({
+    id: page * 1000 + i,
+    title: `商品 ${page}_${i + 1}`,
+    price: Math.floor(Math.random() * 500) + 100,
+    unit: ['天', '月', '次'][i % 3],
+    description: '这是一个示例商品描述，用于展示商品的基本信息',
+    image: `https://img0.baidu.com/it/u=522614871,2801739268&fm=253&fmt=auto&app=120&f=JPEG?w=866&h=500`,
+    Ptype: Props.Ptype,
+  }));
+};
+
   // 用户头像（示例使用随机头像）
 const userAvatar = computed(() => {
   // 实际项目中应从用户数据获取
@@ -150,6 +197,7 @@ const userAvatar = computed(() => {
   onMounted(() => {
     checkLoginStatus()
     // 监听storage变化（用于其他页面登录后的状态同步）
+    loadMore()
     window.addEventListener('storage', checkLoginStatus)
   })
 
@@ -249,6 +297,17 @@ const userAvatar = computed(() => {
     width: 24px;
     height: 24px;
     fill: #666;
+  }
+
+  .product-section {
+    height: 80vh; /* 设置固定高度 */
+    overflow-y: auto; /* 启用垂直滚动 */
+    scrollbar-width: none;
+    -ms-overflow-style: none; /* IE 和 Edge */
+  }
+
+  .product-section::-webkit-scrollbar {
+    display: none; /* 隐藏 Chrome、Safari 和 Edge 滚动条 */
   }
   
   .product-list {

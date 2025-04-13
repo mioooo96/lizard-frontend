@@ -29,6 +29,8 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router';
+const router = useRouter();
 const handleLogout = () => {
   // 这里添加退出登录的逻辑
   console.log('用户点击了退出登录');
@@ -37,6 +39,14 @@ const handleLogout = () => {
   // 2. 跳转到登录页
   // localStorage.removeItem('token');
   // router.push('/login');
+  // 清除 localStorage 中的登录状态
+  localStorage.removeItem('isLoggedIn');
+  localStorage.removeItem('username');
+
+  // 跳转到主页
+  router.push('/');
+
+  console.log('用户已退出登录');
 };
 </script>
 

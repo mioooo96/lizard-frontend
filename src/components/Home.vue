@@ -52,9 +52,26 @@
           </router-link>
         </div>
       </nav>
+
+      <!-- 分类入口 -->
+      <div class="category-section">
+        <h2 class="section-title">功能专区</h2>
+        <div class="category-list">
+          <div 
+            v-for="category in categories"
+            :key="category.id"
+            class="category-item"
+            @click="handleCategoryClick(category)"
+          >
+            <div class="category-icon">{{ category.emoji }}</div>
+            <span>{{ category.name }}</span>
+          </div>
+        </div>
+      </div>
+
       <!-- 商品展示区 -->
-      <div class="product-section">
-        <h2 class="section-title">最新商品</h2>
+      <h2 class="section-title">最新商品</h2>
+      <div class="product-section" @scroll="handleScroll">
         <div class="product-list">
           <div 
             v-for="product in products"
@@ -76,6 +93,8 @@
             <p class="description">{{ product.description }}</p>
           </div>
         </div>
+        <div v-if="loading" class="loading">加载中...</div>
+        <div v-if="noMore" class="no-more">没有更多数据了</div>
         </div>
       </div>
   
@@ -99,10 +118,79 @@
   
   const Props = defineProps(['Ptype'])
   const ProductsStore = useProductsStore()
-  const products = ProductsStore.getProductsByPtype(Props.Ptype)
+  //const products = ProductsStore.getProductsByPtype(Props.Ptype)
   const searchKeyword = ref('')
   const isLoggedIn = ref(false)
   const router = useRouter()
+  const loading = ref(false)
+  const noMore = ref(false)
+  let page = 1
+  const pageSize = 8
+  let productTimestamp = Date.now()
+  const products = ref<ProductInter[]>([
+          {
+            id: 1,
+            title: '九成新智能手机',
+            price: 1200,
+            unit: '台',
+            description: '华为Mate40，保护完好，功能正常',
+            image: 'https://picx.zhimg.com/v2-e7dd8094bcac3702785d157792651690_r.jpg?source=2c26e567',
+            Ptype: "卖"
+          },
+          {
+            id: 2,
+            title: '星铁二手号',
+            price: 12,
+            unit: '天',
+            description: '满命账号',
+            image: 'https://img0.baidu.com/it/u=916732440,3057481842&fm=253&fmt=auto&app=120&f=JPEG?w=800&h=500',
+            Ptype: "租"
+          },
+          {
+            id: 2,
+            title: '我的世界',
+            price: 12,
+            unit: '天',
+            description: '游戏',
+            image: 'https://img1.baidu.com/it/u=1964365371,1566431102&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500',
+            Ptype: "买"
+          },
+          {
+            id: 2,
+            title: 'It\'s MyGo!!!!!',
+            price: 12,
+            unit: '天',
+            description: '满命账号',
+            image: 'https://img2.baidu.com/it/u=1460146858,1748558553&fm=253&fmt=auto&app=120&f=JPEG?w=868&h=500',
+            Ptype: "借"
+          },
+          {
+            id: 2,
+            title: 'Ave Mujica',
+            price: 12,
+            unit: '天',
+            description: '满命账号',
+            image: 'https://img0.baidu.com/it/u=522614871,2801739268&fm=253&fmt=auto&app=120&f=JPEG?w=866&h=500',
+            Ptype: "租"
+          }, 
+          {
+            id: 3,
+            title: '二手数码相机',
+            price: 1500,
+            unit: '台',
+            description: '佳能EOS 200D',
+            image: 'https://img0.baidu.com/it/u=2751675099,3859055809&fm=253&fmt=auto&app=120&f=JPEG?w=1200&h=800',
+            Ptype: '买'
+          },
+          {
+            id: 3,
+            title: '西安电子科技大学',
+            price: 150000000,
+            unit: '所',
+            description: '一所大专',
+            image: 'https://pic.rmb.bdstatic.com/bjh/240424/news/c5b8f069d4bfff04db4661e8543fe24b7669.jpeg',
+            Ptype: '买'
+          }]);
  
   const handleSearch = () => {
     console.log('搜索关键词:', searchKeyword.value)
@@ -111,7 +199,47 @@
   const handlePublish = () => {
     console.log('跳转到发布页面')
   }
+
+  // 滚动处理
+  const handleScroll = (e: Event) => {
+    const container = e.target as HTMLElement
+    const { scrollTop, scrollHeight, clientHeight } = container
+    if (scrollHeight - (scrollTop + clientHeight) < 50) {
+      loadMore()
+    }
+  }
   
+  // 加载更多数据
+  const loadMore = async () => {
+  if (loading.value || noMore.value) return;
+
+  loading.value = true;
+  await new Promise(resolve => setTimeout(resolve, 800));
+
+  const newData = generateMockData(pageSize);
+  products.value = [...products.value, ...newData];
+
+  if (newData.length < pageSize) {
+    noMore.value = true;
+  }
+  if (page >= 5) noMore.value = true
+  page++;
+  loading.value = false;
+};
+
+const generateMockData = (count: number): ProductInter[] => {
+  const types = ['买', '卖', '租', '借'];
+  return Array.from({ length: count }, (_, i) => ({
+    id: page * 1000 + i,
+    title: `商品 ${page}_${i + 1}`,
+    price: Math.floor(Math.random() * 500) + 100,
+    unit: ['天', '月', '次'][i % 3],
+    description: '这是一个示例商品描述，用于展示商品的基本信息',
+    image: `https://img0.baidu.com/it/u=522614871,2801739268&fm=253&fmt=auto&app=120&f=JPEG?w=866&h=500`,
+    Ptype: types[i % 4],
+  }));
+};
+
   const handleProductClick = (product: ProductInter) => {
     const route1 = router.resolve({
       path:'/ProductDetail',
@@ -149,6 +277,7 @@ const userAvatar = computed(() => {
   onMounted(() => {
     checkLoginStatus()
     // 监听storage变化（用于其他页面登录后的状态同步）
+    loadMore();
     window.addEventListener('storage', checkLoginStatus)
   })
 
@@ -156,6 +285,38 @@ const userAvatar = computed(() => {
   onUnmounted(() => {
    window.removeEventListener('storage', checkLoginStatus)
   })
+
+  interface Category {
+    id: number
+    name: string
+    emoji: string
+  }
+
+  const categories = ref<Category[]>([
+    { id: 1, name: '买', emoji: '📚' },
+    { id: 2, name: '卖', emoji: '📱' },
+    { id: 3, name: '租', emoji: '👗' },
+    { id: 4, name: '借', emoji: '🏠' },
+  ])
+
+  const handleCategoryClick = (category: Category) => {
+    console.log('点击分类:', category.name);
+  // 根据分类名称跳转到对应的路由
+  const routeMap: Record<string, string> = {
+    '买': '/buy',
+    '卖': '/show',
+    '租': '/lend',
+    '借': '/borrow',
+  };
+
+  const targetRoute = routeMap[category.name];
+  if (targetRoute) {
+    router.push(targetRoute);
+  } else {
+    console.error('未找到对应的路由:', category.name);
+  }
+  }
+
 </script>
   
 <style scoped>
@@ -250,6 +411,17 @@ const userAvatar = computed(() => {
     fill: #666;
   }
   
+  .product-section {
+    height: 80vh; /* 设置固定高度 */
+    overflow-y: auto; /* 启用垂直滚动 */
+    scrollbar-width: none;
+    -ms-overflow-style: none; /* IE 和 Edge */
+  }
+
+  .product-section::-webkit-scrollbar {
+    display: none; /* 隐藏 Chrome、Safari 和 Edge 滚动条 */
+  }
+
   .product-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -372,5 +544,31 @@ const userAvatar = computed(() => {
 .login-btn {
   /* 保持原有登录按钮样式 */
 }
+
+.category-list {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin: 30px 0;
+    flex-wrap: wrap;
+  }
+  
+  .category-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    padding: 15px;
+    transition: all 0.3s;
+  }
+  
+  .category-item:hover {
+    transform: translateY(-5px);
+  }
+  
+  .category-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+  }
 
 </style>

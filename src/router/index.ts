@@ -9,7 +9,9 @@ import Buy from '@/components/Buy.vue'
 import Borrow from '@/components/Borrow.vue'
 import Lend from '@/components/Lend.vue'
 import User from '@/components/User.vue'
+import Register from '@/components/Register.vue'
 import ProductDetail from '@/components/ProductDetail.vue'
+import TransactionDetail from '@/components/TransactionDetail.vue'
 import PersonalInfo from '@/user/PersonalInfo.vue'
 import ProductRecord from '@/user/ProductRecord.vue'
 import TransactionRecord from '@/user/TransactionRecord.vue'
@@ -92,6 +94,16 @@ const routes = [
     path:'/productDetail',
     name:'ProductDetail',
     component:ProductDetail
+  },
+  {
+    path:'/transactionDetail',
+    name:'TransactionDetail',
+    component:TransactionDetail
+  },
+  {
+    path:'/register',
+    name:'Register',
+    component:Register
   }
   // 添加更多路由...
 ]

@@ -1,0 +1,35 @@
+2025.4.13
+完成帖子记录与交易记录、注册界面的实现，首页与分页的部分修改
+（1）无限滚动的实现
+<div class="product-container" @scroll="handleScroll">
+通过 @scroll="handleScroll" 监听容器的滚动事件。
+
+const handleScroll = (e: Event) => {
+  const container = e.target as HTMLElement
+  const { scrollTop, scrollHeight, clientHeight } = container
+  if (scrollHeight - (scrollTop + clientHeight) < 50) {
+    loadMore()
+  }
+}
+scrollTop：滚动条距离容器顶部的高度。
+scrollHeight：容器内容的总高度（包括不可见部分）。
+clientHeight：容器的可见高度（即容器本身的高度）。
+scrollHeight - (scrollTop + clientHeight)：表示容器底部距离当前滚动位置的剩余高度。
+< 50：当剩余高度小于 50 像素时，认为用户接近底部，触发 loadMore() 方法加载更多数据。
+
+（2）解决了登陆状态的问题
+// 清除 localStorage 中的登录状态
+localStorage.removeItem('isLoggedIn');
+localStorage.removeItem('username');
+// 设置 localStorage 中的登录状态
+localStorage.setItem('isLoggedIn', 'true')
+
+（3）交易信息接口的定义
+在types/index.ts中
+
+（4）修改主页样式
+恢复功能专区部分（或者可以改成其他的样式，原来的样式感觉可能和导航栏有些重复？）
+
+（5）主页与分页实现无限滚动
+这里我认为不需要编写/store/Products.ts
+因为我们定义了是买卖租借四个接口，到时候直接在PagesTemplate.vue中根据Props.Ptype直接加个判断条件看是选择访问哪个接口即可
