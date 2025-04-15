@@ -34,31 +34,49 @@
   <script setup lang="ts" name="Login">
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
-  
+  import axios from 'axios'
   const router = useRouter()
   const username = ref('')
   const password = ref('')
   
-  const handleSubmit = () => {
+  const handleSubmit =  async () =>  {
     // 简单前端验证
     if (!username.value || !password.value) {
       alert('请输入用户名和密码')
       return
     }
-    //-------------------------------------------------------
-    /*             向后端查询数据判断用户是否存在             */
-    //-------------------------------------------------------
-    // 模拟登录成功
+    /*
+    if(username.value != 'admin' || password.value !== '123456'){
+      alert('用户名或密码错误！')
+      return
+    }
+    alert('登录成功！')
     localStorage.setItem('isLoggedIn', 'true')
     localStorage.setItem('username', username.value)
-    
-    // 跳转回首页
-    if(username.value == 'StudentName' && password.value == '123456789'){
-      alert('登陆成功！')
+    router.push('/')
+    */
+    try {
+    const response = await axios.post('http://127.0.0.1:4523/m1/6138343-5830155-default/user/login', {
+      username: username.value,
+      password: password.value,
+    })
+
+    if (response.data.code === 1) {
+      const token = response.headers['token']
+      if (token) {
+        localStorage.setItem('token', token) // 存储 token
+      }
+      alert('登录成功！')
+      localStorage.setItem('isLoggedIn', 'true')
+      localStorage.setItem('username', username.value)
       router.push('/')
-    }else{
-      alert('用户名或密码错误！！！')
+    } else {
+      alert(response.data.message || '用户名或密码错误！')
     }
+  } catch (error) {
+    console.error('登录请求失败:', error)
+    alert('登录失败，请稍后重试！')
+  }
   }
   </script>
   

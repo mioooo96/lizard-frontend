@@ -43,27 +43,35 @@
   <script setup lang="ts" name="Register">
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
+  import axios from 'axios'
   
   const router = useRouter()
   const username = ref('')
   const password = ref('')
   const confirmPassword = ref('')
   
-  const handleRegister = () => {
+  const handleRegister = async () => {
     // 简单前端验证
     if (!username.value || !password.value || !confirmPassword.value) {
       alert('请填写所有字段')
       return
     }
+    const validPattern = /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/
+    if (!validPattern.test(username.value)) {
+      alert('用户名只能包含字母、数字和常见字符')
+      return
+    }
+
+    if (!validPattern.test(password.value)) {
+      alert('密码只能包含字母、数字和常见字符')
+      return
+   }
   
     if (password.value !== confirmPassword.value) {
       alert('两次输入的密码不一致')
       return
     }
-  
-    //-------------------------------------------------------
-    /*             向后端发送数据以完成用户注册             */
-    //-------------------------------------------------------
+    /*
     // 模拟注册成功
     localStorage.setItem('username', username.value)
     localStorage.setItem('password', password.value)
@@ -72,6 +80,29 @@
   
     // 跳转到登录页面
     router.push('/')
+    */
+    try {
+    const response = await axios.post('http://127.0.0.1:4523/m1/6138343-5830155-default/user/register', {
+      username: username.value,
+      password: password.value,
+      confirmPassword: confirmPassword.value,
+    })
+    if (response.data.code === 1) {
+      const token = response.headers['token']
+      if (token) {
+        localStorage.setItem('token', token) // 存储 token
+      }
+      alert('注册成功！')
+      localStorage.setItem('isLoggedIn', 'true')
+      localStorage.setItem('username', username.value)
+      router.push('/')
+    } else {
+      alert(response.data.message || '注册失败！')
+    }
+    } catch (error) {
+    console.error('注册请求失败:', error)
+    alert('注册失败，请稍后重试！')
+   }
   }
   </script>
   
