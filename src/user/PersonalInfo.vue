@@ -19,15 +19,6 @@
         <span>{{ user.username }}</span>
       </div>
       <div class="info-item">
-        <label>密码:</label>
-        <div class="info-content">
-          <span>{{ showPassword ? user.password : '******' }}</span>
-          <button class="toggle-btn" @click="togglePassword">
-            {{ showPassword ? '隐藏' : '显示' }}
-          </button>
-        </div>
-      </div>
-      <div class="info-item">
         <label>电话号码:</label>
         <div class="info-content">
           <span>{{ showPhone ? user.phone : '******' }}</span>
@@ -41,16 +32,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import { tokenToString } from 'typescript';
 
-// 模拟用户数据
+// 用户数据
 const user = ref({
-  id: '12345',
-  nickname: '小明',
-  username: 'xiaoming',
-  avatar: 'https://picx.zhimg.com/v2-e7dd8094bcac3702785d157792651690_r.jpg?source=2c26e567', // 替换为实际头像 URL
-  password: '123456', // 出于安全考虑，通常不会直接显示密码
-  phone: '123-456-7890',
+  id: '',
+  nickname: '',
+  username: '',
+  avatar: '',
+  phone: '',
+  password: '******', // 密码通常不会通过接口返回，保持隐藏
 });
 
 // 控制密码和电话号码显示状态
@@ -64,6 +57,46 @@ const togglePassword = () => {
 const togglePhone = () => {
   showPhone.value = !showPhone.value;
 };
+
+// 获取用户信息
+const fetchUserInfo = async () => {
+  try {
+    const token = localStorage.getItem('token'); // 从 localStorage 获取 token
+    if (!token) {
+     // alert('用户未登录，请先登录！');
+     // return;
+    }
+
+    const response = await axios.get('http://127.0.0.1:4523/m1/6138343-5830155-default/user/current', {
+      headers: {
+        Authorization: token, // 在请求头中添加 Authorization
+      },
+    });
+
+    if (response.data.code === 1) {
+      // 成功获取用户信息
+      const data = response.data.data;
+      user.value = {
+        id: data.id,
+        nickname: data.nickname || '未设置昵称',
+        username: data.username,
+        avatar: data.avatar || 'https://via.placeholder.com/120', // 默认头像
+        phone: data.phone || '未绑定手机号',
+        password: '******', // 密码不从接口返回
+      };
+    } else {
+      //alert(response.data.msg || '获取用户信息失败！');
+    }
+  } catch (error) {
+    //console.error('获取用户信息失败:', error);
+    //alert('获取用户信息失败，请稍后重试！');
+  }
+};
+
+// 在组件加载时调用接口
+onMounted(() => {
+  fetchUserInfo();
+});
 </script>
 
 <style scoped>

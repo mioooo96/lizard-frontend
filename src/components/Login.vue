@@ -11,7 +11,7 @@
               required
             >
           </div>
-          
+
           <div class="form-group">
             <input
               v-model="password"
@@ -20,9 +20,9 @@
               required
             >
           </div>
-  
+
           <button type="submit">登录</button>
-          
+
           <div class="login-tips">
             <router-link to="/register">没有账号？立即注册</router-link>
           </div>
@@ -30,7 +30,7 @@
       </div>
     </div>
   </template>
-  
+
   <script setup lang="ts" name="Login">
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
@@ -38,7 +38,7 @@
   const router = useRouter()
   const username = ref('')
   const password = ref('')
-  
+
   const handleSubmit =  async () =>  {
     // 简单前端验证
     if (!username.value || !password.value) {
@@ -79,7 +79,7 @@
   }
   }
   </script>
-  
+
   <style scoped>
   .login-container {
     min-height: 100vh;
@@ -88,7 +88,7 @@
     align-items: center;
     background: #f5f7fa;
   }
-  
+
   .login-card {
     background: white;
     padding: 2rem;
@@ -97,17 +97,17 @@
     width: 100%;
     max-width: 400px;
   }
-  
+
   h2 {
     text-align: center;
     color: #2c3e50;
     margin-bottom: 1.5rem;
   }
-  
+
   .form-group {
     margin-bottom: 1rem;
   }
-  
+
   input {
     width: 100%;
     padding: 0.8rem;
@@ -115,7 +115,7 @@
     border-radius: 4px;
     margin-bottom: 0.5rem;
   }
-  
+
   button {
     width: 100%;
     padding: 0.8rem;
@@ -126,12 +126,12 @@
     cursor: pointer;
     margin-top: 1rem;
   }
-  
+
   .login-tips {
     margin-top: 1rem;
     text-align: center;
   }
-  
+
   a {
     color: #00aaff;
     text-decoration: none;

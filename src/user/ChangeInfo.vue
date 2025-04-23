@@ -12,63 +12,51 @@
         </div>
       </div>
       <div class="info-item">
-        <label>用户 ID:</label>
-        <span>{{ user.id }}</span> <!-- 用户 ID 通常不可修改 -->
-      </div>
-      <div class="info-item">
         <label>昵称:</label>
         <input v-model="user.nickname" type="text" class="info-input" @input="markAsModified" />
       </div>
       <div class="info-item">
-        <label>用户名:</label>
-        <input v-model="user.username" type="text" class="info-input" @input="markAsModified" />
-      </div>
-      <div class="info-item">
-        <label>密码:</label>
-        <div class="info-content">
-          <input
-            :type="showPassword ? 'text' : 'password'"
-            v-model="user.password"
-            class="info-input"
-            @input="markAsModified"
-          />
-          <button class="toggle-btn" @click="togglePassword">
-            {{ showPassword ? '隐藏' : '显示' }}
-          </button>
-        </div>
-      </div>
-      <div class="info-item">
         <label>电话号码:</label>
-        <div class="info-content">
-          <input
-            :type="showPhone ? 'text' : 'password'"
-            v-model="user.phone"
-            class="info-input"
-            @input="markAsModified"
-          />
-          <button class="toggle-btn" @click="togglePhone">
-            {{ showPhone ? '隐藏' : '显示' }}
-          </button>
-        </div>
+        <input v-model="user.phone" type="text" class="info-input" @input="markAsModified" />
       </div>
     </div>
     <div v-if="isModified" class="save-btn-container">
       <button class="save-btn" @click="saveChanges">保存修改</button>
     </div>
+
+    <h2>修改密码</h2>
+    <div class="info-container">
+      <div class="info-item">
+        <label>旧密码:</label>
+        <input v-model="passwordForm.oldPassword" type="password" class="info-input" />
+      </div>
+      <div class="info-item">
+        <label>新密码:</label>
+        <input v-model="passwordForm.newPassword" type="password" class="info-input" />
+      </div>
+      <div class="info-item">
+        <label>确认新密码:</label>
+        <input v-model="passwordForm.confirmNewPassword" type="password" class="info-input" />
+      </div>
+    </div>
+    <div class="save-btn-container">
+      <button class="save-btn" @click="changePassword">修改密码</button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
+import axios from 'axios';
 
 // 模拟用户数据
 const user = reactive({
-  id: '12345',
-  nickname: '小明',
-  username: 'xiaoming',
-  avatar: 'https://picx.zhimg.com/v2-e7dd8094bcac3702785d157792651690_r.jpg?source=2c26e567', // 替换为实际头像 URL
-  password: '123456',
-  phone: '123-456-7890',
+  id: '',
+  nickname: '',
+  username: '',
+  avatar: '',
+  phone: '',
+  password: '******', // 密码通常不会通过接口返回，保持隐藏
 });
 
 // 控制密码和电话号码显示状态
@@ -78,16 +66,55 @@ const showPhone = ref(false);
 // 标记是否有修改
 const isModified = ref(false);
 
+// 修改密码表单
+const passwordForm = reactive({
+  oldPassword: '',
+  newPassword: '',
+  confirmNewPassword: '',
+});
+
+// 获取 token
+  const token = localStorage.getItem('token');
+if (!token) {
+ // alert('用户未登录，请先登录！');
+ // throw new Error('用户未登录');
+}
+
+// 获取用户信息
+const fetchUserInfo = async () => {
+  try {
+    const response = await axios.get('http://127.0.0.1:4523/m1/6138343-5830155-default/user/current', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.data.code === 1) {
+      const data = response.data.data;
+      user.id = data.id;
+      user.nickname = data.nickname || '未设置昵称';
+      user.username = data.username;
+      user.avatar = data.avatar || 'https://via.placeholder.com/120'; // 默认头像
+      user.phone = data.phone || '未绑定手机号';
+    } else {
+      //alert(response.data.msg || '获取用户信息失败！');
+    }
+  } catch (error) {
+  //  console.error('获取用户信息失败:', error);
+  //  alert('获取用户信息失败，请稍后重试！');//当前可能随机产生失败信息,先不警告
+  }
+};
+
 // 处理头像更改
 const handleAvatarChange = (event: Event) => {
   const file = (event.target as HTMLInputElement).files?.[0];
   if (file) {
     const reader = new FileReader();
     reader.onload = () => {
-      user.avatar = reader.result as string; // 将头像更新为 Base64 数据
+      user.avatar = reader.result as string; // 将 Base64 数据赋值给 avatar
       markAsModified();
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(file); // 将文件读取为 Base64 格式
   }
 };
 
@@ -112,11 +139,77 @@ const markAsModified = () => {
   isModified.value = true;
 };
 
-// 保存修改
-const saveChanges = () => {
-  console.log('保存的用户信息:', user);
-  isModified.value = false; // 保存后重置修改状态
+// 保存用户信息
+const saveChanges = async () => {
+  try {
+    const formData = new FormData();
+    formData.append('nickname', user.nickname);
+    formData.append('phone', user.phone);
+
+    if (user.avatar && typeof user.avatar !== 'string') {
+      formData.append('file', user.avatar as File);
+    }
+
+    const response = await axios.put('http://127.0.0.1:4523/m1/6138343-5830155-default/user/info', formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    if (response.data.code === 1) {
+      alert('用户信息修改成功！');
+      isModified.value = false; // 重置修改状态
+    } else {
+      alert(response.data.msg || '用户信息修改失败！');
+    }
+  } catch (error) {
+    console.error('用户信息修改失败:', error);
+    alert('用户信息修改失败，请稍后重试！');
+  }
 };
+
+// 修改密码
+const changePassword = async () => {
+  if (!passwordForm.oldPassword || !passwordForm.newPassword || !passwordForm.confirmNewPassword) {
+    alert('请填写完整的密码信息！');
+    return;
+  }
+
+  if (passwordForm.newPassword !== passwordForm.confirmNewPassword) {
+    alert('新密码与确认密码不一致！');
+    return;
+  }
+
+  try {
+    const response = await axios.put('http://127.0.0.1:4523/m1/6138343-5830155-default/user/password', {
+      oldPassword: passwordForm.oldPassword,
+      newPassword: passwordForm.newPassword,
+      confirmNewPassword: passwordForm.confirmNewPassword,
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.data.code === 1) {
+      alert('密码修改成功！');
+      passwordForm.oldPassword = '';
+      passwordForm.newPassword = '';
+      passwordForm.confirmNewPassword = '';
+    } else {
+      alert(response.data.msg || '密码修改失败！');
+    }
+  } catch (error) {
+    console.error('密码修改失败:', error);
+    alert('密码修改失败，请稍后重试！');
+  }
+};
+
+// 在组件加载时获取用户信息
+onMounted(() => {
+  fetchUserInfo();
+});
 </script>
 
 <style scoped>
@@ -133,6 +226,14 @@ h1 {
   text-align: center;
   margin-bottom: 30px; /* 调整标题与内容的间距 */
   font-size: 28px; /* 调整标题字体大小 */
+  font-weight: bold;
+}
+
+h2 {
+  text-align: center;
+  margin-top: 40px;
+  margin-bottom: 20px;
+  font-size: 24px;
   font-weight: bold;
 }
 
