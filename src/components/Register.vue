@@ -11,7 +11,7 @@
               required
             >
           </div>
-  
+
           <div class="form-group">
             <input
               v-model="password"
@@ -20,7 +20,7 @@
               required
             >
           </div>
-  
+
           <div class="form-group">
             <input
               v-model="confirmPassword"
@@ -29,9 +29,9 @@
               required
             >
           </div>
-  
+
           <button type="submit">注册</button>
-  
+
           <div class="register-tips">
             <router-link to="/login">已有账号？立即登录</router-link>
           </div>
@@ -39,19 +39,19 @@
       </div>
     </div>
   </template>
-  
+
   <script setup lang="ts" name="Register">
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
   import axios from 'axios'
   import { toast } from 'vue3-toastify';
   import 'vue3-toastify/dist/index.css';
-  
+
   const router = useRouter()
   const username = ref('')
   const password = ref('')
   const confirmPassword = ref('')
-  
+
   const handleRegister = async () => {
     // 简单前端验证
     if (!username.value || !password.value || !confirmPassword.value) {
@@ -69,13 +69,13 @@
       toast('密码只能包含字母、数字和常见字符')
       return
    }
-  
+
     if (password.value !== confirmPassword.value) {
       toast('两次输入的密码不一致')
       return
     }
     try {
-    const response = await axios.post('http://47.122.116.174:8080/api/user/register', {
+      const response = await axios.post('/api/user/register', {
       username: username.value,
       password: password.value,
       confirmPassword: confirmPassword.value,
@@ -94,7 +94,7 @@
    }
   }
   </script>
-  
+
   <style scoped>
   .register-container {
     min-height: 100vh;
@@ -103,7 +103,7 @@
     align-items: center;
     background: #f5f7fa;
   }
-  
+
   .register-card {
     background: white;
     padding: 2rem;
@@ -112,17 +112,17 @@
     width: 100%;
     max-width: 400px;
   }
-  
+
   h2 {
     text-align: center;
     color: #2c3e50;
     margin-bottom: 1.5rem;
   }
-  
+
   .form-group {
     margin-bottom: 1rem;
   }
-  
+
   input {
     width: 100%;
     padding: 0.8rem;
@@ -130,7 +130,7 @@
     border-radius: 4px;
     margin-bottom: 0.5rem;
   }
-  
+
   button {
     width: 100%;
     padding: 0.8rem;
@@ -141,12 +141,12 @@
     cursor: pointer;
     margin-top: 1rem;
   }
-  
+
   .register-tips {
     margin-top: 1rem;
     text-align: center;
   }
-  
+
   a {
     color: #00aaff;
     text-decoration: none;

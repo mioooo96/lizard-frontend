@@ -48,7 +48,7 @@
       return
     }
     try {
-    const response = await axios.post('http://47.122.116.174:8080/api/user/login', {
+    const response = await axios.post('/api/user/login', {
       username: username.value,
       password: password.value,
     })

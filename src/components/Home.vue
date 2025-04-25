@@ -35,17 +35,17 @@
           <div v-if="isLoggedIn" class="user-info">
            <div class="avatar-container" @click="goToProfile">
           <!-- 显示用户头像，使用默认头像示例 -->
-            <img 
-            :src="user.avatar || '../avatar.png'" 
+            <img
+            :src="user.avatar || '../avatar.png'"
             class="user-avatar"
             alt="用户头像"
             >
            </div>
           </div>
-  
-          <router-link 
-          v-else 
-          to="/login" 
+
+          <router-link
+          v-else
+          to="/login"
           class="login-btn"
           >
           登录/注册
@@ -57,7 +57,7 @@
       <div class="category-section">
         <h2 class="section-title">功能专区</h2>
         <div class="category-list">
-          <div 
+          <div
             v-for="category in categories"
             :key="category.id"
             class="category-item"
@@ -73,7 +73,7 @@
       <h2 class="section-title">最新商品</h2>
       <div class="product-section" @scroll="handleScroll">
         <div class="product-list">
-          <div 
+          <div
             v-for="product in products"
             :key="product.id"
             class="product-card"
@@ -97,7 +97,7 @@
         <div v-if="noMore" class="no-more">没有更多数据了</div>
         </div>
       </div>
-  
+
       <!-- 底部信息 -->
       <footer class="footer">
         <p>&copy; 2025 西易平台 版权所有</p>
@@ -109,7 +109,7 @@
       </footer>
     </div>
   </template>
-  
+
 <script lang="ts" setup name="Home">
   import { ref,computed,onMounted,onUnmounted } from 'vue'
   import {useRouter} from 'vue-router'
@@ -118,7 +118,7 @@
   import axios from 'axios'
   import { toast } from 'vue3-toastify';
   import 'vue3-toastify/dist/index.css';
-  
+
   const Props = defineProps(['Ptype'])
   const ProductsStore = useProductsStore()
   //const products = ProductsStore.getProductsByPtype(Props.Ptype)
@@ -175,7 +175,7 @@
             description: '满命账号',
             image: 'https://img0.baidu.com/it/u=522614871,2801739268&fm=253&fmt=auto&app=120&f=JPEG?w=866&h=500',
             Ptype: "租"
-          }, 
+          },
           {
             id: 3,
             title: '二手数码相机',
@@ -206,7 +206,7 @@
   const handleSearch = () => {
     console.log('搜索关键词:', searchKeyword.value)
   }
-  
+
   const handlePublish = () => {
     console.log('跳转到发布页面')
   }
@@ -219,7 +219,7 @@
       loadMore()
     }
   }
-  
+
   // 加载更多数据
   const loadMore = async () => {
   if (loading.value || noMore.value) return;
@@ -285,7 +285,7 @@ const generateMockData = (count: number): ProductInter[] => {
       // alert('用户未登录，请先登录！');
       // return;
       }
-      const response = await axios.get('http://47.122.116.174:8080/api/user/current', {
+      const response = await axios.get('/api/user/current', {
         headers: {
           Authorization: token, // 在请求头中添加 Authorization
         },
@@ -358,7 +358,7 @@ const generateMockData = (count: number): ProductInter[] => {
   }
 
 </script>
-  
+
 <style scoped>
   .container {
     width: 100%;
@@ -369,7 +369,7 @@ const generateMockData = (count: number): ProductInter[] => {
     display: flex;     /* 启用 Flex 布局 */
     flex-direction: column; /* 垂直方向排列子元素 */
   }
-  
+
   .nav-bar {
     display: flex;
     justify-content: space-between;
@@ -377,29 +377,29 @@ const generateMockData = (count: number): ProductInter[] => {
     padding: 20px 0;
     border-bottom: 1px solid #eee;
   }
-  
+
   .logo h1 {
     color: #2c3e50;
     margin: 0;
   }
-  
+
   .nav-items {
     display: flex;
     align-items: center;
     gap: 30px;
   }
-  
+
   .nav-items a {
     color: #34495e;
     text-decoration: none;
     font-weight: 500;
     transition: color 0.3s;
   }
-  
+
   .nav-items a:hover {
     color: #00aaff;
   }
-  
+
   .publish-btn {
     background: #00aaff;
     color: white;
@@ -409,22 +409,22 @@ const generateMockData = (count: number): ProductInter[] => {
     cursor: pointer;
     transition: background 0.3s;
   }
-  
+
   .publish-btn:hover {
     background: #0090e0;
   }
-  
+
   .search-box {
     margin: 20px 0;
     width: 400px;
   }
-  
+
   .search-input-wrapper {
     position: relative;
     max-width: 600px;
     margin: 0 auto;
   }
-  
+
   .search-input {
     width: 100%;
     padding: 12px 20px;
@@ -433,7 +433,7 @@ const generateMockData = (count: number): ProductInter[] => {
     font-size: 16px;
     padding-right: 25px;
   }
-  
+
   .search-btn {
     position: absolute;
     right: 0px;
@@ -444,13 +444,13 @@ const generateMockData = (count: number): ProductInter[] => {
     cursor: pointer;
     padding: 0px;
   }
-  
+
   .search-icon {
     width: 24px;
     height: 24px;
     fill: #666;
   }
-  
+
   .product-section {
     height: 80vh; /* 设置固定高度 */
     overflow-y: auto; /* 启用垂直滚动 */
@@ -468,7 +468,7 @@ const generateMockData = (count: number): ProductInter[] => {
     gap: 30px;
     margin: 30px 0;
   }
-  
+
   .product-card {
     border: 1px solid #eee;
     border-radius: 8px;
@@ -476,37 +476,37 @@ const generateMockData = (count: number): ProductInter[] => {
     transition: transform 0.3s;
     cursor: pointer;
   }
-  
+
   .product-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
-  
+
   .product-image {
     width: 100%;
     height: 200px;
     object-fit: cover;
   }
-  
+
   .product-info {
     padding: 15px;
     background: white;
   }
-  
+
   .price {
     color: #e4393c;
     font-weight: bold;
     font-size: 1.2em;
     margin: 10px 0;
   }
-  
+
   .section-title {
     color: #333;
     border-left: 4px solid #00aaff;
     padding-left: 10px;
     margin: 30px 0;
   }
-  
+
   .footer {
     margin-top: 50px;
     padding: 30px 0;
@@ -514,18 +514,18 @@ const generateMockData = (count: number): ProductInter[] => {
     text-align: center;
     color: #666;
   }
-  
+
   .footer-links {
     margin-top: 15px;
   }
-  
+
   .footer-links a {
     margin: 0 15px;
     color: #666;
     text-decoration: none;
     transition: color 0.3s;
   }
-  
+
   .footer-links a:hover {
     color: #00aaff;
   }
@@ -550,13 +550,13 @@ const generateMockData = (count: number): ProductInter[] => {
   font-weight: bold;
   z-index: 2;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  
+
   /* 不同交易类型颜色 */
   &.type-买 { background: #f39c12; }
   &.type-卖 { background: #e74c3c; }
   &.type-租 { background: #3498db; }
   &.type-借 { background: #2ecc71; }
-  
+
   /* 可选：添加文字阴影提升可读性 */
   text-shadow: 0 1px 2px rgba(0,0,0,0.2);
   }
@@ -592,7 +592,7 @@ const generateMockData = (count: number): ProductInter[] => {
     margin: 30px 0;
     flex-wrap: wrap;
   }
-  
+
   .category-item {
     display: flex;
     flex-direction: column;
@@ -601,11 +601,11 @@ const generateMockData = (count: number): ProductInter[] => {
     padding: 15px;
     transition: all 0.3s;
   }
-  
+
   .category-item:hover {
     transform: translateY(-5px);
   }
-  
+
   .category-icon {
     font-size: 40px;
     margin-bottom: 10px;

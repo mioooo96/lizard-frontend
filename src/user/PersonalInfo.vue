@@ -4,8 +4,8 @@
     <div class="info-container">
       <div class="info-item avatar-item">
         <label>头像:</label>
-        <img 
-            :src="user.avatar || '../avatar.png'" 
+        <img
+            :src="user.avatar || '../avatar.png'"
             class="avatar"
             alt="用户头像"
             >
@@ -72,7 +72,7 @@ const fetchUserInfo = async () => {
      // return;
     }
 
-    const response = await axios.get('http://47.122.116.174:8080/api/user/current', {
+    const response = await axios.get('/api/user/current', {
       headers: {
         Authorization: token, // 在请求头中添加 Authorization
       },

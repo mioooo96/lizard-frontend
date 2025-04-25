@@ -66,7 +66,7 @@ export default {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.put(
-          "http://47.122.116.174:8080/api/user/password",
+          "/api/user/password",
           {
             oldPassword: oldPassword.value,
             newPassword: newPassword.value,

@@ -43,7 +43,7 @@ export default {
 
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.delete("http://47.122.116.174:8080/api/user/deactivate", {
+        const response = await axios.delete("/api/user/deactivate", {
           headers: {
             Authorization: token,
           },
