@@ -36,7 +36,7 @@
            <div class="avatar-container" @click="goToProfile">
           <!-- 显示用户头像，使用默认头像示例 -->
             <img 
-            :src="userAvatar" 
+            :src="user.avatar || '../avatar.png'" 
             class="user-avatar"
             alt="用户头像"
             >
@@ -115,6 +115,9 @@
   import {useRouter} from 'vue-router'
   import {type ProductInter,type Products} from '@/types'
   import { useProductsStore } from '@/store/Products'
+  import axios from 'axios'
+  import { toast } from 'vue3-toastify';
+  import 'vue3-toastify/dist/index.css';
   
   const Props = defineProps(['Ptype'])
   const ProductsStore = useProductsStore()
@@ -191,7 +194,15 @@
             image: 'https://pic.rmb.bdstatic.com/bjh/240424/news/c5b8f069d4bfff04db4661e8543fe24b7669.jpeg',
             Ptype: '买'
           }]);
- 
+
+  const user = ref({
+    id: '',
+    nickname: '',
+    username: '',
+    avatar: '',
+    phone: '',
+    password: '******', // 密码通常不会通过接口返回，保持隐藏
+  });
   const handleSearch = () => {
     console.log('搜索关键词:', searchKeyword.value)
   }
@@ -256,13 +267,6 @@ const generateMockData = (count: number): ProductInter[] => {
   window.open(route1.href, '_blank'); // 新标签页打开
   }
 
-  // 用户头像（示例使用随机头像）
-const userAvatar = computed(() => {
-  // 实际项目中应从用户数据获取
-  return 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + 
-    (localStorage.getItem('username') || 'user')
-})
-
   // 检查登录状态
   const checkLoginStatus = () => {
     isLoggedIn.value = localStorage.getItem('isLoggedIn') === 'true'
@@ -273,12 +277,48 @@ const userAvatar = computed(() => {
     router.push('/user/personalInfo')
   }
 
+  // 获取用户信息
+  const fetchUserInfo = async () => {
+    try {
+     const token = localStorage.getItem('token'); // 从 localStorage 获取 token
+      if (!token) {
+      // alert('用户未登录，请先登录！');
+      // return;
+      }
+      const response = await axios.get('http://47.122.116.174:8080/api/user/current', {
+        headers: {
+          Authorization: token, // 在请求头中添加 Authorization
+        },
+      });
+      if (response.data.code === 1) {
+        // 成功获取用户信息
+        const data = response.data.data;
+        user.value = {
+          id: data.id,
+          nickname: data.nickname || '未设置昵称',
+          username: data.username,
+          avatar: data.avatar, // 默认头像
+          phone: data.phone || '未绑定手机号',
+          password: '******', // 密码不从接口返回
+        };
+        console.log('用户信息:', user.value);
+      } else {
+        toast(response.data.msg);
+      }
+    } catch (error) {
+      console.error('获取用户信息失败:', error);
+      //alert('获取用户信息失败，请稍后重试！');
+    }
+  };
   // 初始化检查
   onMounted(() => {
     checkLoginStatus()
     // 监听storage变化（用于其他页面登录后的状态同步）
     loadMore();
     window.addEventListener('storage', checkLoginStatus)
+    if (localStorage.getItem('isLoggedIn') === 'true') {
+      fetchUserInfo();
+    }
   })
 
   // 移除监听器

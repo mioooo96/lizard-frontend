@@ -6,7 +6,7 @@
       <div class="info-item avatar-item">
         <label>头像:</label>
         <div class="avatar-container">
-          <img :src="user.avatar" alt="用户头像" class="avatar" />
+          <img :src="user.avatar || '../avatar.png'" alt="用户头像" class="avatar" />
           <input type="file" class="file-input" @change="handleAvatarChange" />
           <button class="file-btn" @click="triggerFileInput">选择文件</button>
         </div>
@@ -23,31 +23,14 @@
     <div v-if="isModified" class="save-btn-container">
       <button class="save-btn" @click="saveChanges">保存修改</button>
     </div>
-
-    <h2>修改密码</h2>
-    <div class="info-container">
-      <div class="info-item">
-        <label>旧密码:</label>
-        <input v-model="passwordForm.oldPassword" type="password" class="info-input" />
-      </div>
-      <div class="info-item">
-        <label>新密码:</label>
-        <input v-model="passwordForm.newPassword" type="password" class="info-input" />
-      </div>
-      <div class="info-item">
-        <label>确认新密码:</label>
-        <input v-model="passwordForm.confirmNewPassword" type="password" class="info-input" />
-      </div>
-    </div>
-    <div class="save-btn-container">
-      <button class="save-btn" @click="changePassword">修改密码</button>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import axios from 'axios';
+import { toast } from 'vue3-toastify';
+import 'vue3-toastify/dist/index.css';
 
 // 模拟用户数据
 const user = reactive({
@@ -83,9 +66,9 @@ if (!token) {
 // 获取用户信息
 const fetchUserInfo = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:4523/m1/6138343-5830155-default/user/current', {
+    const response = await axios.get('http://47.122.116.174:8080/api/user/current', {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: token, // 在请求头中添加 Authorization
       },
     });
 
@@ -94,24 +77,28 @@ const fetchUserInfo = async () => {
       user.id = data.id;
       user.nickname = data.nickname || '未设置昵称';
       user.username = data.username;
-      user.avatar = data.avatar || 'https://via.placeholder.com/120'; // 默认头像
+      user.avatar = data.avatar; // 默认头像
       user.phone = data.phone || '未绑定手机号';
+      console.log('用户信息:', user);
     } else {
-      //alert(response.data.msg || '获取用户信息失败！');
+      toast(response.data.msg);
     }
   } catch (error) {
-  //  console.error('获取用户信息失败:', error);
-  //  alert('获取用户信息失败，请稍后重试！');//当前可能随机产生失败信息,先不警告
+    console.error('获取用户信息失败:', error);
+    toast('获取用户信息失败，请稍后重试！');
   }
 };
 
 // 处理头像更改
+const imgFile = ref<File | null>(null);
 const handleAvatarChange = (event: Event) => {
   const file = (event.target as HTMLInputElement).files?.[0];
   if (file) {
     const reader = new FileReader();
     reader.onload = () => {
-      user.avatar = reader.result as string; // 将 Base64 数据赋值给 avatar
+      user.avatar = reader.result as string;
+      imgFile.value = file; // 将 Base64 数据赋值给 avatar
+      console.log('头像文件:', imgFile.value);
       markAsModified();
     };
     reader.readAsDataURL(file); // 将文件读取为 Base64 格式
@@ -143,66 +130,34 @@ const markAsModified = () => {
 const saveChanges = async () => {
   try {
     const formData = new FormData();
-    formData.append('nickname', user.nickname);
-    formData.append('phone', user.phone);
+    formData.append('nickname', user.nickname); // 添加昵称
+    formData.append('phone', user.phone); // 添加电话号码
 
-    if (user.avatar && typeof user.avatar !== 'string') {
-      formData.append('file', user.avatar as File);
+    // 如果用户选择了新头像文件，则上传文件
+    if (imgFile.value) {
+      formData.append('file', imgFile.value); // 将文件对象附加到 FormData
     }
 
-    const response = await axios.put('http://127.0.0.1:4523/m1/6138343-5830155-default/user/info', formData, {
+    const config = {
+      method: 'put',
+      url: 'http://47.122.116.174:8080/api/user/info',
       headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'multipart/form-data',
+        Authorization: token, // 使用本地存储的 token
       },
-    });
+      data: formData,
+    };
+
+    const response = await axios(config);
 
     if (response.data.code === 1) {
-      alert('用户信息修改成功！');
+      toast('用户信息修改成功！', { autoClose: 1000 });
       isModified.value = false; // 重置修改状态
     } else {
-      alert(response.data.msg || '用户信息修改失败！');
+      toast(response.data.msg);
     }
   } catch (error) {
     console.error('用户信息修改失败:', error);
-    alert('用户信息修改失败，请稍后重试！');
-  }
-};
-
-// 修改密码
-const changePassword = async () => {
-  if (!passwordForm.oldPassword || !passwordForm.newPassword || !passwordForm.confirmNewPassword) {
-    alert('请填写完整的密码信息！');
-    return;
-  }
-
-  if (passwordForm.newPassword !== passwordForm.confirmNewPassword) {
-    alert('新密码与确认密码不一致！');
-    return;
-  }
-
-  try {
-    const response = await axios.put('http://127.0.0.1:4523/m1/6138343-5830155-default/user/password', {
-      oldPassword: passwordForm.oldPassword,
-      newPassword: passwordForm.newPassword,
-      confirmNewPassword: passwordForm.confirmNewPassword,
-    }, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (response.data.code === 1) {
-      alert('密码修改成功！');
-      passwordForm.oldPassword = '';
-      passwordForm.newPassword = '';
-      passwordForm.confirmNewPassword = '';
-    } else {
-      alert(response.data.msg || '密码修改失败！');
-    }
-  } catch (error) {
-    console.error('密码修改失败:', error);
-    alert('密码修改失败，请稍后重试！');
+    toast('用户信息修改失败，请稍后重试！');
   }
 };
 

@@ -4,7 +4,11 @@
     <div class="info-container">
       <div class="info-item avatar-item">
         <label>头像:</label>
-        <img :src="user.avatar" alt="用户头像" class="avatar" />
+        <img 
+            :src="user.avatar || '../avatar.png'" 
+            class="avatar"
+            alt="用户头像"
+            >
       </div>
       <div class="info-item">
         <label>用户 ID:</label>
@@ -32,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref,computed,onMounted,onUnmounted } from 'vue'
 import axios from 'axios';
 import { tokenToString } from 'typescript';
 
@@ -62,12 +66,13 @@ const togglePhone = () => {
 const fetchUserInfo = async () => {
   try {
     const token = localStorage.getItem('token'); // 从 localStorage 获取 token
+    console.log('token:', token);
     if (!token) {
      // alert('用户未登录，请先登录！');
      // return;
     }
 
-    const response = await axios.get('http://127.0.0.1:4523/m1/6138343-5830155-default/user/current', {
+    const response = await axios.get('http://47.122.116.174:8080/api/user/current', {
       headers: {
         Authorization: token, // 在请求头中添加 Authorization
       },
@@ -80,10 +85,11 @@ const fetchUserInfo = async () => {
         id: data.id,
         nickname: data.nickname || '未设置昵称',
         username: data.username,
-        avatar: data.avatar || 'https://via.placeholder.com/120', // 默认头像
+        avatar: data.avatar, // 默认头像
         phone: data.phone || '未绑定手机号',
         password: '******', // 密码不从接口返回
       };
+      console.log('用户信息:', user.value);
     } else {
       //alert(response.data.msg || '获取用户信息失败！');
     }

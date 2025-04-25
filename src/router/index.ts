@@ -16,7 +16,8 @@ import PersonalInfo from '@/user/PersonalInfo.vue'
 import ProductRecord from '@/user/ProductRecord.vue'
 import TransactionRecord from '@/user/TransactionRecord.vue'
 import ChangeInfo from '@/user/ChangeInfo.vue'
-
+import ChangePassword from '@/user/ChangePassword.vue'
+import DeleteAccount from '@/user/DeleteAccount.vue'
 
 const routes = [
   {
@@ -104,6 +105,14 @@ const routes = [
     path:'/register',
     name:'Register',
     component:Register
+  },{
+    path:'/changePassword',
+    name:'ChangePassword',
+    component:ChangePassword
+  },{
+    path:'/deleteAccount',
+    name:'DeleteAccount',
+    component:DeleteAccount
   }
   // 添加更多路由...
 ]

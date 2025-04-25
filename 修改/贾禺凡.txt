@@ -33,3 +33,19 @@ localStorage.setItem('isLoggedIn', 'true')
 （5）主页与分页实现无限滚动
 这里我认为不需要编写/store/Products.ts
 因为我们定义了是买卖租借四个接口，到时候直接在PagesTemplate.vue中根据Props.Ptype直接加个判断条件看是选择访问哪个接口即可
+
+2025.4.25
+（1）与后端对接
+接口形如下，后面的参数与apifox相同
+http://47.122.116.174:8080/api/user/current
+（2）设定默认头像
+默认头像在根目录下的avatar.png
+（3）引入组件库替换alert
+  import { toast } from 'vue3-toastify';
+  import 'vue3-toastify/dist/index.css';
+  toast('请输入用户名和密码',{autoClose: 1000})       显式设置关闭时间为1s
+  toast('请输入用户名和密码',)                                 默认为3s，设定在main.ts中，可修改默认值
+（4）图片上传至后端
+并非Base64格式，这里直接将原file上传即可
+（5）用户个人信息界面新增修改密码与注销账号功能
+用户个人信息这块应该已经全部完成

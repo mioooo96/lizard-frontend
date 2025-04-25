@@ -35,6 +35,8 @@
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
   import axios from 'axios'
+  import { toast } from 'vue3-toastify';
+  import 'vue3-toastify/dist/index.css';
   const router = useRouter()
   const username = ref('')
   const password = ref('')
@@ -42,40 +44,33 @@
   const handleSubmit =  async () =>  {
     // 简单前端验证
     if (!username.value || !password.value) {
-      alert('请输入用户名和密码')
+      toast('请输入用户名和密码',{autoClose: 1000})
       return
     }
-    /*
-    if(username.value != 'admin' || password.value !== '123456'){
-      alert('用户名或密码错误！')
-      return
-    }
-    alert('登录成功！')
-    localStorage.setItem('isLoggedIn', 'true')
-    localStorage.setItem('username', username.value)
-    router.push('/')
-    */
     try {
-    const response = await axios.post('http://127.0.0.1:4523/m1/6138343-5830155-default/user/login', {
+    const response = await axios.post('http://47.122.116.174:8080/api/user/login', {
       username: username.value,
       password: password.value,
     })
 
     if (response.data.code === 1) {
       const token = response.headers['token']
+      console.log('token:', token)
       if (token) {
         localStorage.setItem('token', token) // 存储 token
       }
-      alert('登录成功！')
       localStorage.setItem('isLoggedIn', 'true')
       localStorage.setItem('username', username.value)
-      router.push('/')
+      toast('登录成功！',{autoClose: 1000})
+      setTimeout(() => {
+        router.push('/');
+      }, 1000);
     } else {
-      alert(response.data.message || '用户名或密码错误！')
+      toast(response.data.msg,{autoClose: 3000})
     }
   } catch (error) {
     console.error('登录请求失败:', error)
-    alert('登录失败，请稍后重试！')
+    toast('登录失败，请稍后重试！')
   }
   }
   </script>

@@ -6,6 +6,8 @@
       </div>
       <div class="nav-buttons">
         <router-link to="/" class="nav-button">回到首页</router-link>
+        <router-link to="/changePassword" class="nav-button">修改密码</router-link>
+        <router-link to="/deleteAccount" class="nav-button">注销账号</router-link>
         <button class="nav-button logout" @click="handleLogout">退出登录</button>
       </div>
     </nav>
@@ -17,6 +19,7 @@
         <div>
           <router-link to="/user/personalInfo" active-class="select">个人信息</router-link>
           <router-link to="/user/changeInfo" active-class="select">修改个人信息</router-link>
+
           <router-link to="/user/productRecord" active-class="select">帖子记录</router-link>
           <router-link to="/user/transactionRecord" active-class="select">交易记录</router-link>
         </div>
