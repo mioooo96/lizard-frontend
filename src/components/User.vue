@@ -45,6 +45,7 @@ const handleLogout = () => {
   // 清除 localStorage 中的登录状态
   localStorage.removeItem('isLoggedIn');
   localStorage.removeItem('username');
+  localStorage.removeItem('userID')
 
   // 跳转到主页
   router.push('/');
@@ -146,11 +147,11 @@ const handleLogout = () => {
   overflow: hidden;
   z-index: 1;
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-  
 
-  background: linear-gradient(60deg, 
-    rgba(255,255,0,0.8), 
-    rgba(0,255,255,0.8), 
+
+  background: linear-gradient(60deg,
+    rgba(255,255,0,0.8),
+    rgba(0,255,255,0.8),
     rgba(255,165,0,0.8));
   background-size: 300% 300%;
   animation: GradientBackground 8s ease infinite;
@@ -171,7 +172,7 @@ const handleLogout = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
+  background:
     radial-gradient(circle at 20% 30%, rgba(255,255,255,0.2) 0%, transparent 40%),
     radial-gradient(circle at 80% 70%, rgba(255,255,255,0.2) 0%, transparent 40%);
   z-index: -1;
@@ -191,7 +192,7 @@ const handleLogout = () => {
   font-size: 28px;
   font-weight: bold;
   position: relative;
-  text-shadow: 
+  text-shadow:
     0 2px 4px rgba(0,0,0,0.1),
     0 0 10px rgba(255,255,255,0.3);
   animation: TextGlow 3s ease-in-out infinite alternate;

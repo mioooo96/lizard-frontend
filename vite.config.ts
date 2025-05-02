@@ -22,7 +22,7 @@ export default defineConfig({
       '/api': {
         target: 'http://47.122.116.174:8080', // 目标接口域名
         changeOrigin: true, // 是否跨域
-        //rewrite:(path) => path.replace(/^\/api/, ''), // 重写接口
+        // rewrite:(path) => path.replace(/^\/api/, ''), // 重写接口
       },
     },
  },

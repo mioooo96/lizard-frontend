@@ -145,7 +145,7 @@
             title: '星铁二手号',
             price: 12,
             unit: '天',
-            description: '满命账号',
+            description: '满命账号,闲置便宜出',
             image: 'https://img0.baidu.com/it/u=916732440,3057481842&fm=253&fmt=auto&app=120&f=JPEG?w=800&h=500',
             Ptype: "租"
           },
@@ -154,7 +154,7 @@
             title: '我的世界',
             price: 12,
             unit: '天',
-            description: '游戏',
+            description: '《我的世界》是一款3D第一人称沙盒游戏。玩家可以在三维空间中自由地创造和破坏不同种类的方块',
             image: 'https://img1.baidu.com/it/u=1964365371,1566431102&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500',
             Ptype: "买"
           },
@@ -172,7 +172,7 @@
             title: 'Ave Mujica',
             price: 12,
             unit: '天',
-            description: '满命账号',
+            description: '朋友仓库到期不租了，帮忙清货',
             image: 'https://img0.baidu.com/it/u=522614871,2801739268&fm=253&fmt=auto&app=120&f=JPEG?w=866&h=500',
             Ptype: "租"
           },
@@ -301,6 +301,7 @@ const generateMockData = (count: number): ProductInter[] => {
           phone: data.phone || '未绑定手机号',
           password: '******', // 密码不从接口返回
         };
+        localStorage.setItem("userID",user.value.id)
         console.log('用户信息:', user.value);
       } else {
         toast(response.data.msg);
