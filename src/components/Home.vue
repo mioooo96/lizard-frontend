@@ -208,6 +208,7 @@
   }
 
   const handlePublish = () => {
+    router.push('/CreatePost');
     console.log('跳转到发布页面')
   }
 
