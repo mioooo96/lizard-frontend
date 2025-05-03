@@ -1,5 +1,5 @@
 <template>
-  <PagesTemplate Ptype="租"></PagesTemplate>
+  <PagesTemplate Ptype=2></PagesTemplate>
 </template>
 
 <script setup lang="ts" name="Borrow">

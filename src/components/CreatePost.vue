@@ -58,6 +58,7 @@ import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
+import imageCompression from 'browser-image-compression';
 
 const router = useRouter(); // 获取路由实例
 
@@ -77,14 +78,43 @@ const triggerFileInput = () => {
   fileInput.value?.click();
 };
 
-const handleAddImage = (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  if (target.files && target.files[0]) {
-    // 添加图片文件
-    post.value.images.push(target.files[0]);
+const handleAddImage = async (event: Event) => {
+  const file = (event.target as HTMLInputElement).files?.[0];
+  if (file) {
+    console.log(`图片名称: ${file.name}`);
+    // 检查文件大小是否超过限制（例如 5MB）
+    if (file.size > 5 * 1024 * 1024) { // 5MB = 5 * 1024 * 1024 字节
+      toast.info('图片大小超过 5MB，正在压缩，请稍候...');
+      console.log(`压缩前的图片大小: ${file.size / 1024 / 1024} MB`);
+      try {
+        // 压缩图片
+        const compressedFile = await imageCompression(file, {
+          maxSizeMB: 5, // 压缩到 5MB 以下
+          maxWidthOrHeight: 4000, // 限制图片最大宽高
+          useWebWorker: true, // 使用 Web Worker 加速压缩
+        });
 
-    // 更新图片预览
-    imagePreviews.value.push(URL.createObjectURL(target.files[0]));
+        // 更新图片列表和预览
+        // 创建一个新的文件对象，保留原始文件名
+        const newFile = new File([compressedFile], file.name, { type: compressedFile.type });
+        post.value.images.push(newFile);
+        imagePreviews.value.push(URL.createObjectURL(newFile)); // 更新预览图
+        toast.success('图片压缩成功！');
+        console.log(`压缩后的图片大小: ${compressedFile.size / 1024 / 1024} MB`);
+        console.log(`压缩后图片名称: ${compressedFile.name}`);
+      } catch (error) {
+        toast.error('图片压缩失败，请重试！');
+        console.error('图片压缩错误:', error);
+      }
+    } else {
+      // 如果图片大小在限制范围内，直接添加
+      const reader = new FileReader();
+      reader.onload = () => {
+        post.value.images.push(file);
+        imagePreviews.value.push(URL.createObjectURL(file)); // 更新预览图
+      };
+      reader.readAsDataURL(file); // 将文件读取为 Base64 格式
+    }
   }
 };
 
@@ -112,6 +142,14 @@ const submitPost = async () => {
     toast.error('预期价格不能为零！');
     return;
   }
+  if( post.value.price < 0) {
+    toast.error('预期价格不能为负数！');
+    return;
+  }
+  if( post.value.price > 2147483647) {
+    toast.error('预期价格超出表示上限！');
+    return;
+  }
   if (!post.value.content.trim()) {
     toast.error('内容不能为空！');
     return;
@@ -124,6 +162,8 @@ const submitPost = async () => {
   formData.append('content', post.value.content);
   formData.append('type', post.value.type.toString());
   formData.append('price', post.value.price.toString());
+
+  console.log('post.value', post.value);
 
   // 上传第一张图片
   if (post.value.images.length > 0 && post.value.images[0]) {

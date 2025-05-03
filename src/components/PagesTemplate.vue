@@ -65,17 +65,17 @@
             @click="handleProductClick(product)"
           >
           <!-- 新增类型标签 -->
-          <div class="type-tag" :class="'type-' + product.Ptype">
-            {{ product.Ptype }} <!-- 显示类型文字 -->
+          <div class="type-tag" :class="'type-' + protype[product.type]">
+            {{ protype[product.type] }} <!-- 显示类型文字 -->
           </div>
 
           <div class="product-image-wrapper">
-            <img :src="product.image" class="product-image" alt="商品图片">
+            <img :src="product.imageUrl" class="product-image" alt="商品图片">
           </div>
           <div class="product-info">
             <h3>{{ product.title }}</h3>
-            <p class="price">{{ product.price }}元/{{ product.unit }}</p>
-            <p class="description">{{ product.description }}</p>
+            <p class="price">{{ product.price }}元</p>
+            <p class="description">{{ product.contentBrief }}</p>
           </div>
         </div>
         </div>
@@ -95,7 +95,7 @@
   
 <script lang="ts" setup name="PagesTemplate">
   import { ref,computed,onMounted,onUnmounted } from 'vue'
-  import {useRouter} from 'vue-router'
+  import {useRouter,useRoute} from 'vue-router'
   import {type ProductInter,type Products} from '@/types'
   import { useProductsStore } from '@/store/Products'
   import axios from 'axios'
@@ -108,11 +108,13 @@
   const searchKeyword = ref('')
   const isLoggedIn = ref(false)
   const router = useRouter()
+  const route = useRoute()
   const loading = ref(false)
   const noMore = ref(false)
   let page = 1
   const pageSize = 8
   let productTimestamp = Date.now()
+  const protype = ['买', '卖', '租', '借']
   
   const products = ref<ProductInter[]>([])
   const user = ref({
@@ -125,10 +127,20 @@
   });
  
   const handleSearch = () => {
-    console.log('搜索关键词:', searchKeyword.value)
+    if (!searchKeyword.value.trim()) {
+      toast('请输入搜索关键词！'); // 提示用户输入关键词
+      return;
+    }
+
+    // 跳转到 /search 路由，并传递搜索关键词
+    router.push({
+      path: '/search',
+      query: { keyword: searchKeyword.value.trim() }
+    });
   }
   
   const handlePublish = () => {
+    router.push('/CreatePost');
     console.log('跳转到发布页面')
   }
   
@@ -136,13 +148,7 @@
     router.push({
       path:'/ProductDetail',
       query:{
-        id: product.id,
-        title: product.title,
-        price: product.price,
-        unit: product.unit,
-        description: product.description,
-        image: product.image,
-        Ptype:product.Ptype
+        id: product.id
       }
     })
   }
@@ -156,36 +162,51 @@
     }
   }
   
-  // 加载更多数据
   const loadMore = async () => {
   if (loading.value || noMore.value) return;
 
   loading.value = true;
-  await new Promise(resolve => setTimeout(resolve, 800));
 
-  const newData = generateMockData(pageSize);
-  products.value = [...products.value, ...newData];
+  try {
+    const token = localStorage.getItem('token');
+    if(!token){
+      toast.error('请先登录');
+      router.push('/login');
+    }
+    const response = await axios.get('/api/post/type', {
+      params: {
+        type: Props.Ptype,
+        pageNum: 1,
+        pageSize: 8,
+      },
+      headers:{
+        Authorization: token,
+      }
+    });
 
-  if (newData.length < pageSize) {
-    noMore.value = true;
+    if (response.data.code === 1) {
+      const { records, total } = response.data.data;
+
+      // 将新数据追加到 products 中
+      products.value = [...products.value, ...records];
+
+      // 判断是否还有更多数据
+      if (products.value.length >= total) {
+        noMore.value = true;
+      }
+
+      page++; // 增加页码
+    } else {
+      toast.error(`加载失败：${response.data.msg}`);
+    }
+  } catch (error) {
+    console.error('加载失败:', error);
+    toast.error('加载失败，请稍后重试！');
+  } finally {
+    loading.value = false;
   }
-  if (page >= 5) noMore.value = true
-  page++;
-  loading.value = false;
 };
 
-const generateMockData = (count: number): ProductInter[] => {
-  const types = ['买', '卖', '租', '借'];
-  return Array.from({ length: count }, (_, i) => ({
-    id: page * 1000 + i,
-    title: `商品 ${page}_${i + 1}`,
-    price: Math.floor(Math.random() * 500) + 100,
-    unit: ['天', '月', '次'][i % 3],
-    description: '这是一个示例商品描述，用于展示商品的基本信息',
-    image: `https://img0.baidu.com/it/u=522614871,2801739268&fm=253&fmt=auto&app=120&f=JPEG?w=866&h=500`,
-    Ptype: Props.Ptype,
-  }));
-};
   // 获取用户信息
   const fetchUserInfo = async () => {
     try {

@@ -1,3 +1,4 @@
+<!-- 此页为四种功能的共同模板减少代码量 -->
 <template>
     <div class="container">
       <!-- 导航栏 -->
@@ -35,45 +36,29 @@
           <div v-if="isLoggedIn" class="user-info">
            <div class="avatar-container" @click="goToProfile">
           <!-- 显示用户头像，使用默认头像示例 -->
-            <img
-            :src="user.avatar || '../avatar.png'"
+            <img 
+            :src="user.avatar || '../avatar.png'" 
             class="user-avatar"
             alt="用户头像"
             >
            </div>
           </div>
-
-          <router-link
-          v-else
-          to="/login"
+  
+          <router-link 
+          v-else 
+          to="/login" 
           class="login-btn"
           >
           登录/注册
           </router-link>
         </div>
       </nav>
-
-      <!-- 分类入口 -->
-      <div class="category-section">
-        <h2 class="section-title">功能专区</h2>
-        <div class="category-list">
-          <div
-            v-for="category in categories"
-            :key="category.id"
-            class="category-item"
-            @click="handleCategoryClick(category)"
-          >
-            <div class="category-icon">{{ category.emoji }}</div>
-            <span>{{ category.name }}</span>
-          </div>
-        </div>
-      </div>
-
+  
       <!-- 商品展示区 -->
       <h2 class="section-title">最新商品</h2>
       <div class="product-section" @scroll="handleScroll">
         <div class="product-list">
-          <div
+          <div 
             v-for="product in products"
             :key="product.id"
             class="product-card"
@@ -89,15 +74,16 @@
           </div>
           <div class="product-info">
             <h3>{{ product.title }}</h3>
-            <p class="price">{{ product.price }}</p>
+            <p class="price">{{ product.price }}元</p>
             <p class="description">{{ product.contentBrief }}</p>
           </div>
         </div>
-        <div v-if="loading" class="loading">加载中...</div>
-        <div v-if="noMore" class="no-more">没有更多数据了</div>
+        </div>
+        <div v-if="products.length === 0" class="no-data">
+          <p>未找到相关数据，请尝试其他关键词。</p>
         </div>
       </div>
-
+  
       <!-- 底部信息 -->
       <footer class="footer">
         <p>&copy; 2025 西易平台 版权所有</p>
@@ -109,30 +95,33 @@
       </footer>
     </div>
   </template>
-
-<script lang="ts" setup name="Home">
-  import { ref,computed,onMounted,onUnmounted } from 'vue'
-  import {useRouter} from 'vue-router'
+  
+<script lang="ts" setup name="PagesTemplate">
+  import { ref,computed,onMounted,onUnmounted, watch } from 'vue'
+  import {useRouter,useRoute} from 'vue-router'
   import {type ProductInter,type Products} from '@/types'
   import { useProductsStore } from '@/store/Products'
   import axios from 'axios'
   import { toast } from 'vue3-toastify';
   import 'vue3-toastify/dist/index.css';
 
-  const Props = defineProps(['Ptype'])
+  const Props = defineProps(['keysearch'])
+  console.log(Props.keysearch)
   const ProductsStore = useProductsStore()
   //const products = ProductsStore.getProductsByPtype(Props.Ptype)
   const searchKeyword = ref('')
   const isLoggedIn = ref(false)
   const router = useRouter()
+  const route = useRoute()
   const loading = ref(false)
   const noMore = ref(false)
   let page = 1
+  const pageN = 1
   const pageSize = 8
   let productTimestamp = Date.now()
-  const protype =['买','卖','租','借']
-  const products = ref<ProductInter[]>([]);
-
+  const protype = ['买','卖','租','借']
+  
+  const products = ref<ProductInter[]>([])
   const user = ref({
     id: '',
     nickname: '',
@@ -141,23 +130,33 @@
     phone: '',
     password: '******', // 密码通常不会通过接口返回，保持隐藏
   });
+ 
   const handleSearch = () => {
     console.log('搜索关键词:', searchKeyword.value);
     if (!searchKeyword.value.trim()) {
       toast('请输入搜索关键词！'); // 提示用户输入关键词
       return;
     }
-
+    console.log('跳转到搜索页面')
     // 跳转到 /search 路由，并传递搜索关键词
     router.push({
       path: '/search',
       query: { keyword: searchKeyword.value.trim() }
     });
   }
-
+  
   const handlePublish = () => {
     router.push('/CreatePost');
     console.log('跳转到发布页面')
+  }
+  
+  const handleProductClick = (product: ProductInter) => {
+    router.push({
+      path:'/ProductDetail',
+      query:{
+        id: product.id,
+      }
+    })
   }
 
   // 滚动处理
@@ -168,71 +167,70 @@
       loadMore()
     }
   }
-
+  
+  // 加载更多数据
   const loadMore = async () => {
   if (loading.value || noMore.value) return;
 
   loading.value = true;
 
-  try {
-    const token = localStorage.getItem('token');
-    if(!token){
-      toast.error('请先登录');
-      router.push('/login');
-    }
-    const response = await axios.get('/api/post/time', {
-      params: {
-        pageNum:1,
-        pageSize:8,
-      },
-      headers:{
-        Authorization: token,
-      }
-    });
+  const newData = await getnewData(pageSize);
+  products.value = [...products.value, ...newData];
 
-    if (response.data.code === 1) {
-      const { records, total } = response.data.data;
-
-      // 将新数据追加到 products 中
-      products.value = [...products.value, ...records];
-
-      // 判断是否还有更多数据
-      if (products.value.length >= total) {
-        noMore.value = true;
-      }
-
-      page++; // 增加页码
-    } else {
-      toast.error(`加载失败：${response.data.msg}`);
-    }
-  } catch (error) {
-    console.error('加载失败:', error);
-    toast.error('加载失败，请稍后重试！');
-  } finally {
-    loading.value = false;
+  if (newData.length < pageSize) {
+    noMore.value = true;
   }
+  page++;
+  loading.value = false;
 };
 
-  const handleProductClick = (product: ProductInter) => {
-    const route1 = router.resolve({
-      path:'/ProductDetail',
-      query:{
-        id: product.id
-      }
+const getnewData = async (count: number): Promise<ProductInter[]> => {
+    try {
+    const token = localStorage.getItem('token'); // 从 localStorage 获取 token
+    if (!token) {
+      toast('用户未登录，请先登录！');
+      router.push('/login'); // 跳转到登录页面
+    }
+
+    // 构造请求参数
+    const requestData = {
+      pageNum: pageN, // 当前页数
+      pageSize: pageSize, // 每页数据量
+      word: Props.keysearch || '', // 使用传入的关键词
+    };
+    //console.log('请求参数:', requestData);
+    // 发送请求到后端
+    const response = await axios.get('/api/post/search',{
+      params: requestData,
+      headers: {
+        Authorization: token, // 在请求头中添加 token
+      },
     });
-  window.open(route1.href, '_blank'); // 新标签页打开
-  }
 
-  // 检查登录状态
-  const checkLoginStatus = () => {
-    isLoggedIn.value = localStorage.getItem('isLoggedIn') === 'true'
-  }
+    // 检查返回结果
+    if (response.data.code === 1) {
+      const records = response.data.data.records;
+      console.log('查询结果:', records);
 
-  // 跳转到个人中心
-  const goToProfile = () => {
-    router.push('/user/personalInfo')
+      // 将后端返回的数据转换为前端需要的格式
+      return records.map((record: any) => ({
+        id: record.id,
+        title: record.title,
+        price: record.price,
+        contentBrief: record.contentBrief,
+        imageUrl: record.imageUrl, // 如果后端没有提供图片，可以设置默认图片
+        type: record.type // 假设 type 为 0 表示 "买"，1 表示 "卖"
+      }));
+    } else {
+      toast(response.data.msg || '查询失败，请稍后重试！');
+      return [];
+    }
+  } catch (error) {
+    console.error('查询失败:', error);
+    toast('查询失败，请稍后重试！');
+    return [];
   }
-
+};
   // 获取用户信息
   const fetchUserInfo = async () => {
     try {
@@ -257,21 +255,31 @@
           phone: data.phone || '未绑定手机号',
           password: '******', // 密码不从接口返回
         };
-        localStorage.setItem("userID",user.value.id)
         console.log('用户信息:', user.value);
       } else {
         toast(response.data.msg);
       }
     } catch (error) {
       console.error('获取用户信息失败:', error);
-      //alert('获取用户信息失败，请稍后重试！');
+      toast('获取用户信息失败，请稍后重试！');
     }
   };
+
+  // 检查登录状态
+  const checkLoginStatus = () => {
+    isLoggedIn.value = localStorage.getItem('isLoggedIn') === 'true'
+  }
+
+  // 跳转到个人中心
+  const goToProfile = () => {
+    router.push('/user')
+  }
+
   // 初始化检查
   onMounted(() => {
     checkLoginStatus()
     // 监听storage变化（用于其他页面登录后的状态同步）
-    loadMore();
+    loadMore()
     window.addEventListener('storage', checkLoginStatus)
     if (localStorage.getItem('isLoggedIn') === 'true') {
       fetchUserInfo();
@@ -283,39 +291,15 @@
    window.removeEventListener('storage', checkLoginStatus)
   })
 
-  interface Category {
-    id: number
-    name: string
-    emoji: string
-  }
-
-  const categories = ref<Category[]>([
-    { id: 1, name: '买入', emoji: '📚' },
-    { id: 2, name: '卖出', emoji: '📱' },
-    { id: 3, name: '租出', emoji: '👗' },
-    { id: 4, name: '借入', emoji: '🏠' },
-  ])
-
-  const handleCategoryClick = (category: Category) => {
-    console.log('点击分类:', category.name);
-  // 根据分类名称跳转到对应的路由
-  const routeMap: Record<string, string> = {
-    '买入': '/buy',
-    '卖出': '/show',
-    '租出': '/lend',
-    '借入': '/borrow',
-  };
-
-  const targetRoute = routeMap[category.name];
-  if (targetRoute) {
-    router.push(targetRoute);
-  } else {
-    console.error('未找到对应的路由:', category.name);
-  }
-  }
-
+  watch(() => Props.keysearch, (newKey) => {
+    console.log('关键词更新:', newKey);
+    products.value = []; // 清空当前数据
+    page = 1; // 重置分页
+    noMore.value = false; // 重置加载状态
+    loadMore(); // 重新加载数据
+  });
 </script>
-
+  
 <style scoped>
   .container {
     width: 100%;
@@ -326,7 +310,7 @@
     display: flex;     /* 启用 Flex 布局 */
     flex-direction: column; /* 垂直方向排列子元素 */
   }
-
+  
   .nav-bar {
     display: flex;
     justify-content: space-between;
@@ -334,29 +318,29 @@
     padding: 20px 0;
     border-bottom: 1px solid #eee;
   }
-
+  
   .logo h1 {
     color: #2c3e50;
     margin: 0;
   }
-
+  
   .nav-items {
     display: flex;
     align-items: center;
     gap: 30px;
   }
-
+  
   .nav-items a {
     color: #34495e;
     text-decoration: none;
     font-weight: 500;
     transition: color 0.3s;
   }
-
+  
   .nav-items a:hover {
     color: #00aaff;
   }
-
+  
   .publish-btn {
     background: #00aaff;
     color: white;
@@ -366,22 +350,22 @@
     cursor: pointer;
     transition: background 0.3s;
   }
-
+  
   .publish-btn:hover {
     background: #0090e0;
   }
-
+  
   .search-box {
     margin: 20px 0;
     width: 400px;
   }
-
+  
   .search-input-wrapper {
     position: relative;
     max-width: 600px;
     margin: 0 auto;
   }
-
+  
   .search-input {
     width: 100%;
     padding: 12px 20px;
@@ -390,7 +374,7 @@
     font-size: 16px;
     padding-right: 25px;
   }
-
+  
   .search-btn {
     position: absolute;
     right: 0px;
@@ -401,7 +385,7 @@
     cursor: pointer;
     padding: 0px;
   }
-
+  
   .search-icon {
     width: 24px;
     height: 24px;
@@ -418,14 +402,14 @@
   .product-section::-webkit-scrollbar {
     display: none; /* 隐藏 Chrome、Safari 和 Edge 滚动条 */
   }
-
+  
   .product-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 30px;
     margin: 30px 0;
   }
-
+  
   .product-card {
     border: 1px solid #eee;
     border-radius: 8px;
@@ -433,37 +417,37 @@
     transition: transform 0.3s;
     cursor: pointer;
   }
-
+  
   .product-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
-
+  
   .product-image {
     width: 100%;
     height: 200px;
     object-fit: cover;
   }
-
+  
   .product-info {
     padding: 15px;
     background: white;
   }
-
+  
   .price {
     color: #e4393c;
     font-weight: bold;
     font-size: 1.2em;
     margin: 10px 0;
   }
-
+  
   .section-title {
     color: #333;
     border-left: 4px solid #00aaff;
     padding-left: 10px;
     margin: 30px 0;
   }
-
+  
   .footer {
     margin-top: 50px;
     padding: 30px 0;
@@ -471,18 +455,18 @@
     text-align: center;
     color: #666;
   }
-
+  
   .footer-links {
     margin-top: 15px;
   }
-
+  
   .footer-links a {
     margin: 0 15px;
     color: #666;
     text-decoration: none;
     transition: color 0.3s;
   }
-
+  
   .footer-links a:hover {
     color: #00aaff;
   }
@@ -507,13 +491,13 @@
   font-weight: bold;
   z-index: 2;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-
+  
   /* 不同交易类型颜色 */
   &.type-买 { background: #f39c12; }
   &.type-卖 { background: #e74c3c; }
   &.type-租 { background: #3498db; }
   &.type-借 { background: #2ecc71; }
-
+  
   /* 可选：添加文字阴影提升可读性 */
   text-shadow: 0 1px 2px rgba(0,0,0,0.2);
   }
@@ -541,31 +525,4 @@
 .login-btn {
   /* 保持原有登录按钮样式 */
 }
-
-.category-list {
-    display: flex;
-    justify-content: center;
-    gap: 130px;
-    margin: 30px 0;
-    flex-wrap: wrap;
-  }
-
-  .category-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: pointer;
-    padding: 15px;
-    transition: all 0.3s;
-  }
-
-  .category-item:hover {
-    transform: translateY(-5px);
-  }
-
-  .category-icon {
-    font-size: 40px;
-    margin-bottom: 10px;
-  }
-
 </style>

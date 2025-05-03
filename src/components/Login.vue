@@ -61,6 +61,7 @@
       }
       localStorage.setItem('isLoggedIn', 'true')
       localStorage.setItem('username', username.value)
+      localStorage.setItem('userid',response.data.data.id)
       toast('登录成功！',{autoClose: 1000})
       setTimeout(() => {
         router.push('/');

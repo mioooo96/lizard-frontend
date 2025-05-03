@@ -8,6 +8,7 @@ import Show from '@/components/Show.vue'
 import Buy from '@/components/Buy.vue'
 import Borrow from '@/components/Borrow.vue'
 import Lend from '@/components/Lend.vue'
+import Search from '@/components/Search.vue'
 import User from '@/components/User.vue'
 import Register from '@/components/Register.vue'
 import ProductDetail from '@/components/ProductDetail.vue'
@@ -64,6 +65,11 @@ const routes = [
     path: '/lend',
     name: 'Lend',
     component: Lend
+  },
+  {
+    path: '/search',
+    name: 'Search',
+    component: Search
   },
   {
     path: '/createPost',

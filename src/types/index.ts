@@ -1,12 +1,15 @@
 // 商品类型定义
 export interface ProductInter{
-    id: number
-    title: string
-    price: number
-    unit: string
-    description: string
-    image: string
-    Ptype: string
+  id: number;
+  userId?: number;
+  username?: string;
+  title: string;
+  contentBrief: string;
+  imageUrl: string;
+  type: number;
+  status?: number;
+  price: number;
+  createTime?: string;
 }
 
 export type Products = Array<ProductInter>

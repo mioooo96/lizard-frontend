@@ -3,8 +3,8 @@
     <div class="simple-merchant-bar">
       <!-- 商家信息栏-->
       <div class="merchant-basic">
-        <img class="merchant-avatar" :src="sellerAvatar" alt="商家头像">
-        <span class="merchant-id">{{ sellerId }}</span>
+        <img class="merchant-avatar" :src="posterInfo.avatar" alt="商家头像">
+        <span class="merchant-id">{{ posterInfo.id }}</span>
       </div>
       <button class="contact-button" @click="contactSeller">
         <!---- 电话图标... -->
@@ -14,8 +14,8 @@
 
     <div class="product-container">
       <div class="img-container">
-        <div class="type-tag" :class="'type-' + Ptype">
-          {{ Ptype }}
+        <div class="type-tag" :class="'type-' + postDetail.type">
+          {{ postDetail.type }}
         </div>
 
         <!-- 商品图片区域 -->
@@ -43,22 +43,13 @@
       <!-- 商品详细信息区域 -->
       <div class="detail">
         <div class="price1">
-          ￥{{ price }}/{{ unit }}
+          ￥{{ postDetail.price }}
         </div>
         <div class="title">
-          {{ title }}
+          {{ postDetail.title }}
         </div>
         <div class="description">
-          HUAWEI Mate 40是华为公司于2020年10月22日发布的手机，于2020年12月21日上市。 [1] [3]
-          HUAWEI Mate 40采用6.5英寸的68度曲面屏； [5]机身长度为158.6毫米，宽度为72.5毫米，厚度为8.8毫米，重量为188克；配有亮黑色、釉白色、秘银色、夏日胡杨和秋日胡杨五种配色。
-          HUAWEI Mate 40搭载麒麟9000E处理器；后置5000万像素主镜头+1600万像素超广角镜头+800万像素长焦镜头，前置1300万像素镜头；内置4200毫安时电池。 [3]HUAWEI Mate
-          40背面采用“星环设计”，四枚摄像头组成了圈状，圆环左右上下各一枚镜头，补光灯位于中轴线上，圆环视觉上中心留空，上面印有徕卡Logo和标识，正面采用双曲面屏设计；电源键为红色，音量键和电源键位于中框中线位置，顶部有麦克风、扬声器开孔、红外线开孔和3.5毫米耳机接口；底部是SIM卡槽、Type-C充电口、扬声器开孔。
-          [8]
-          HUAWEI Mate 40搭载麒麟9000E SoC 5G芯片；核心架构采用1×Cortex-A77 Based 3.13吉赫兹+3×Cortex-A77 Based 2.54吉赫兹+4×Cortex-A55
-          Based
-          2.05吉赫兹，GPU为22核心的Mali-G78 GPU，NPU为1大核+1小核，网络方面集成5G Balong 5000调制解调器，下载速度比骁龙865+的X55调制解调器快2倍，上载速度比骁龙865+的快5倍。
-          [8]
-          畅连
+          {{ postDetail.content }}
         </div>
         <div class="hint-text">
           喜欢的朋友点"请求交易"
@@ -95,10 +86,8 @@ import 'vue3-toastify/dist/index.css'
 
 const route = useRoute()
 const router = useRouter()
-const { image, price, title, id, unit, description, Ptype } = route.query
+const id = route.query
 const isLoggedIn = ref(false)
-const sellerAvatar = ref('https://img0.baidu.com/it/u=1769889107,1779345423&fm=253&fmt=auto&app=138&f=JPEG?w=573&h=500')
-const sellerId = ref('1')
 const customerID = ref(localStorage.getItem("userID"))
 
 // 放大功能逻辑
@@ -108,17 +97,110 @@ const currentPos = reactive({ x: 0, y: 0 })
 const isDragging = ref(false)
 const dragStartPos = reactive({ x: 0, y: 0 })
 
+// 帖子详情数据
+const postDetail = reactive({
+  id: 0,
+  userId: 0,
+  username: '',
+  title: '',
+  content: '',
+  type: 0,
+  status: 0,
+  price: 0,
+  createTime: '',
+  imageUrls: [] as string[],
+});
+
+// 发帖人详情
+const posterInfo = reactive({
+  id: 0,
+  username: '',
+  nickname: '',
+  avatar: '',
+  phone: '',
+});
+
+
 //缩略图
-const images = ref<string[]>([
-  route.query.image as string,
-  'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fsafe-img.xhscdn.com%2Fbw1%2F39ed999d-537c-402f-b9a1-ed9e25ae6599%3FimageView2%2F2%2Fw%2F1080%2Fformat%2Fjpg&refer=http%3A%2F%2Fsafe-img.xhscdn.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=auto?sec=1748527034&t=d2e0fd7932ffa89d21b724dda66a87d8', // 示例图片1
-  'https://img2.baidu.com/it/u=3790659371,1436552200&fm=253&app=138&f=JPEG?w=500&h=666', // 示例图片2
-  'https://img1.baidu.com/it/u=614880695,2479322890&fm=253&app=138&f=JPEG?w=500&h=666'  // 示例图片3
-])
+const images = ref<string[]>([])
 
-const currentImageIndex = ref(0)
-const currentImage = computed(() => images.value[currentImageIndex.value])
+const currentImageIndex = ref(0);
+const currentImage = computed(() => images.value[currentImageIndex.value]);
+//const currentImageIndex = ref(0)
+//const currentImage = computed(() => images.value[currentImageIndex.value])
 
+// 获取帖子详情的函数
+const fetchPostDetail = async () => {
+  const postId = route.query.id; // 从路由参数中获取帖子 ID
+  console.log('帖子 ID:', postId);
+  if (!postId) {
+    toast.error('帖子 ID 不存在！');
+    return;
+  }
+  const token = localStorage.getItem('token');
+  const isLoggedIn = localStorage.getItem('isLoggedIn');
+  if (!token) {
+    toast.error('用户未登录，请先登录！');
+    router.push('/login');
+  }
+  if (!isLoggedIn) {
+    toast.error('用户未登录，请先登录！');
+    router.push('/login');
+  }
+  try {
+    const response = await axios.get('/api/post/'+postId, { 
+      headers: {
+        Authorization: token, // 在请求头中添加 token
+      },
+     });
+    console.log('获取帖子详情:', response.data);
+    if (response.data.code === 1) {
+      // 将返回的数据绑定到 postDetail
+      Object.assign(postDetail, response.data.data);
+      images.value = [...postDetail.imageUrls];
+      console.log('帖子详情:', postDetail);
+      if (postDetail.userId) {
+        await fetchPosterInfo(postDetail.userId);
+      }
+    } else {
+      toast.error(`获取帖子详情失败：${response.data.msg}`);
+    }
+  } catch (error) {
+    console.error('获取帖子详情失败:', error);
+    toast.error('获取帖子详情失败，请稍后重试！');
+  }
+};
+// 获取发帖人信息
+const fetchPosterInfo = async (userId: number) => {
+  try {
+    const token = localStorage.getItem('token');
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (!token) {
+      toast.error('用户未登录，请先登录！');
+      router.push('/login');
+    }
+    if (!isLoggedIn) {
+      toast.error('用户未登录，请先登录！');
+      router.push('/login');
+    }
+    const response = await axios.get('/api/user/'+postDetail.userId, {
+      headers: {
+        Authorization: token, // 在请求头中添加 token
+      },
+    });
+
+    if (response.data.code === 1) {
+      // 将返回的数据绑定到 posterInfo
+      Object.assign(posterInfo, response.data.data);
+      console.log('发帖人信息:', posterInfo);
+    } else {
+      toast.error(`获取发帖人信息失败：${response.data.msg}`);
+    }
+  } catch (error) {
+    console.error('获取发帖人信息失败:', error);
+    toast.error('获取发帖人信息失败，请稍后重试！');
+  }
+};
 // 计算属性
 const zoomedImageStyle = computed(() => ({
   transform: `translate(${currentPos.x}px, ${currentPos.y}px) scale(${zoomLevel.value})`,
@@ -190,7 +272,7 @@ const handleRequest = async () => {
       const response = await axios.post('/api/trade/create',
         {
           payerId: customerID.value,
-          payeeId: sellerId.value,
+          payeeId: posterInfo.id,
           postId: id
         }, {
         headers: {
@@ -221,6 +303,7 @@ const handleRequest = async () => {
 
 // 生命周期
 onMounted(() => {
+  fetchPostDetail();
   checkLoginStatus()
   document.title = `商品详情 - ${route.query.title || '未命名'}`
   document.addEventListener('keydown', handleKeyDown)
@@ -231,7 +314,7 @@ onUnmounted(() => {
 })
 
 const contactSeller = () => {
-  console.log('联系商家:', sellerId.value)
+  toast('联系商家电话:'+posterInfo.phone, { autoClose: 5000 })
 }
 //切换图片
 const switchImage = (index: number) => {

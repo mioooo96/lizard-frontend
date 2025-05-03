@@ -8,20 +8,20 @@
         @click="handleProductClick(product)"
       >
         <!-- 类型标签 -->
-        <div class="type-tag" :class="'type-' + product.Ptype">
-          {{ product.Ptype }}
+        <div class="type-tag" :class="'type-' + protype[product.type]">
+          {{ protype[product.type] }}
         </div>
         <!-- 商品图片 -->
         <div class="product-image-wrapper">
-          <img :src="product.image" class="product-image" alt="商品图片">
+          <img :src="product.imageUrl" class="product-image" alt="商品图片">
         </div>
         <!-- 描述信息 -->
         <div class="product-info">
           <h3>{{ product.title }}</h3>
           <div class="meta-info">
-            <p class="price">{{ product.price }}元/{{ product.unit }}</p>
+            <p class="price">{{ product.price }}元</p>
           </div>
-          <p class="description">{{ product.description }}</p>
+          <p class="description">{{ product.contentBrief }}</p>
         </div>
       </div>
 
@@ -35,6 +35,9 @@
 import { ref, onMounted } from 'vue'
 import type { ProductInter, Products } from '@/types'
 import {useRouter} from 'vue-router'
+import axios from 'axios'
+import { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 
 // 响应式数据
 const products = ref<Products>([])
@@ -44,37 +47,54 @@ let page = 1
 const pageSize = 8
 let productTimestamp = Date.now()
 const router = useRouter()
+const protype = ['买', '卖', '租', '借']
 
-// 生成模拟数据（符合ProductInter接口）
-const generateMockData = (count: number): Products => {
-  const types = ['买', '卖', '租', '借']
-  
-  return Array.from({ length: count }, (_, i) => ({
-    id: page * 1000 + i,
-    title: `商品 ${page}_${i + 1}`,
-    price: Math.floor(Math.random() * 500) + 100,
-    unit: ['天', '月', '次'][i % 3],
-    description: '这是一个示例商品描述，用于展示商品的基本信息',
-    image: `https://img1.baidu.com/it/u=1964365371,1566431102&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500`,
-    Ptype: types[i % 4]
-  }))
-}
-
-// 加载更多数据
 const loadMore = async () => {
-  if (loading.value || noMore.value) return
-  
-  loading.value = true
-  await new Promise(resolve => setTimeout(resolve, 800))
-  
-  const newData = generateMockData(pageSize)
-  products.value = [...products.value, ...newData]
-  
-  //if (page >= 5) noMore.value = true
-  page++
-  productTimestamp -= 3600000 // 模拟时间递减
-  loading.value = false
-}
+  if (loading.value || noMore.value) return;
+
+  loading.value = true;
+
+  try {
+    const token = localStorage.getItem('token');
+    if(!token){
+      toast.error('请先登录');
+      router.push('/login');
+    }
+    // 发送请求获取数据
+    const response = await axios.get('/api/post/list', {
+      params: {
+        pageNum: 1,
+        pageSize: 8,
+        userId: localStorage.getItem('userID'), // 从本地存储获取用户 ID
+      },
+      headers:{
+        Authorization: token,
+      }
+    });
+    console.log(localStorage.getItem('userID'))
+    console.log('获取数据:', response.data);
+    if (response.data.code === 1) {
+      const { records, total } = response.data.data;
+
+      // 将新数据追加到 products 中
+      products.value = [...products.value, ...records];
+
+      // 判断是否还有更多数据
+      if (products.value.length >= total) {
+        noMore.value = true;
+      }
+
+      page++; // 增加页码
+    } else {
+      toast.error(`加载失败：${response.data.msg}`);
+    }
+  } catch (error) {
+    console.error('加载失败:', error);
+    toast.error('加载失败，请稍后重试！');
+  } finally {
+    loading.value = false;
+  }
+};
 
 // 滚动处理
 const handleScroll = (e: Event) => {
@@ -93,13 +113,7 @@ const handleProductClick = (product: ProductInter) => {
     const route1 = router.resolve({
       path:'/ProductDetail',
       query:{
-        id: product.id,
-        title: product.title,
-        price: product.price,
-        unit: product.unit,
-        description: product.description,
-        image: product.image,
-        Ptype:product.Ptype
+        id: product.id
       }
     });
   window.open(route1.href, '_blank'); // 新标签页打开
