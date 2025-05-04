@@ -63,7 +63,7 @@ const loadMore = async () => {
     // 发送请求获取数据
     const response = await axios.get('/api/post/list', {
       params: {
-        pageNum: 1,
+        pageNum: page,
         pageSize: 8,
         userId: localStorage.getItem('userID'), // 从本地存储获取用户 ID
       },

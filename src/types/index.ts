@@ -15,15 +15,17 @@ export interface ProductInter{
 export type Products = Array<ProductInter>
 
 // 交易类型定义
-export type TransactionType = '买卖' | '租借'
-export type TransactionStatus = '可交易' | '待交易' | '交易成功' | '交易失败'
 
 export interface TransactionRecord {
-  type: TransactionType
-  status: TransactionStatus
-  image: string
-  productName: string
-  time: number
+  id: number
+  payerId:number
+  payeeId:number
+  postId:number
+  status: number
+  createTime: string
+  imageUrl:string
+  type:number
+  title:string
 }
 
 export type Transactions = Array<TransactionRecord>

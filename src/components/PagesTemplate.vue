@@ -176,7 +176,7 @@
     const response = await axios.get('/api/post/type', {
       params: {
         type: Props.Ptype,
-        pageNum: 1,
+        pageNum: page,
         pageSize: 8,
       },
       headers:{
@@ -251,9 +251,22 @@
     router.push('/user')
   }
 
+  const checkTokenValidity = () => {
+    const token = localStorage.getItem('token');
+    const tokenExpiration = Number(localStorage.getItem('tokenExpiration'));
+
+    if (!token || Date.now() > tokenExpiration) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('tokenExpiration');
+      localStorage.setItem('isLoggedIn', 'false');
+      toast.error('登录已过期，请重新登录！');
+      router.push('/login');
+    }
+};
   // 初始化检查
   onMounted(() => {
     checkLoginStatus()
+    checkTokenValidity()
     // 监听storage变化（用于其他页面登录后的状态同步）
     loadMore()
     window.addEventListener('storage', checkLoginStatus)

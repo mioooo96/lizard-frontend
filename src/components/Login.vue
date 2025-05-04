@@ -58,6 +58,8 @@
       console.log('token:', token)
       if (token) {
         localStorage.setItem('token', token) // 存储 token
+        const expirationTime = Date.now() + 2 * 60 * 60 * 1000; // 当前时间 + 2 小时
+        localStorage.setItem('tokenExpiration', expirationTime.toString());
       }
       localStorage.setItem('isLoggedIn', 'true')
       localStorage.setItem('username', username.value)

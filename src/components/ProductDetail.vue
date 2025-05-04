@@ -56,7 +56,7 @@
         </div>
         <button class="request-btn" @click="handleRequest">
           <!-- 购物车图标 -->
-          请求交易
+          {{ showinfo }}
         </button>
       </div>
     </div>
@@ -88,7 +88,10 @@ const route = useRoute()
 const router = useRouter()
 const id = route.query
 const isLoggedIn = ref(false)
-const customerID = ref(localStorage.getItem("userID"))
+const customerID = ref(Number(localStorage.getItem("userID")))
+const showinfo = ref('')
+const tradestatus = ref(-1)
+
 
 // 放大功能逻辑
 const isZoomed = ref(false)
@@ -160,7 +163,13 @@ const fetchPostDetail = async () => {
       images.value = [...postDetail.imageUrls];
       console.log('帖子详情:', postDetail);
       if (postDetail.userId) {
+        if(postDetail.userId == customerID.value){
+          showinfo.value = '撤销帖子'
+        }else{  
+          showinfo.value = '请求交易'
+        }
         await fetchPosterInfo(postDetail.userId);
+        await fetchTradeInfo(postDetail.userId);
       }
     } else {
       toast.error(`获取帖子详情失败：${response.data.msg}`);
@@ -201,6 +210,47 @@ const fetchPosterInfo = async (userId: number) => {
     toast.error('获取发帖人信息失败，请稍后重试！');
   }
 };
+//查询交易记录
+const fetchTradeInfo = async (userId: number) => {
+  try {
+    const token = localStorage.getItem('token');
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (!token) {
+      toast.error('用户未登录，请先登录！');
+      router.push('/login');
+    }
+    if (!isLoggedIn) {
+      toast.error('用户未登录，请先登录！');
+      router.push('/login');
+    }
+    const response = await axios.get('/api/trade',{
+      params: {
+        payerId: customerID.value,
+        payeeId: userId,
+        postId: postDetail.id
+    }, 
+      headers: {
+        Authorization: token, // 在请求头中添加 token
+      },
+    });
+
+    if (response.data.code === 1) {
+      // 将返回的数据绑定到 posterInfo
+      if(response.data.data == null){
+        tradestatus.value = -1
+      }else{
+        tradestatus.value = response.data.data.status
+      }
+    } else {
+      //toast.error(`获取发帖人信息失败：${response.data.msg}`);
+      tradestatus.value = -1
+    }
+  } catch (error) {
+    console.error('获取交易信息失败:', error);
+    toast.error('获取交易信息失败，请稍后重试！');
+  }
+};
+
 // 计算属性
 const zoomedImageStyle = computed(() => ({
   transform: `translate(${currentPos.x}px, ${currentPos.y}px) scale(${zoomLevel.value})`,
@@ -266,14 +316,14 @@ const handleRequest = async () => {
     setTimeout(() => {
       router.replace("/login")
     }, 3000)
-  } else {
+  } else if(posterInfo.id != customerID.value && tradestatus.value == -1){ {
     try {
       const token = localStorage.getItem("token")
       const response = await axios.post('/api/trade/create',
         {
           payerId: customerID.value,
           payeeId: posterInfo.id,
-          postId: id
+          postId: postDetail.id
         }, {
         headers: {
           Authorization: token, // 在请求头中添加 Authorization
@@ -284,9 +334,33 @@ const handleRequest = async () => {
       console.log(response.data.data);
 
       if (response.data.code === 1) {
-        toast("请求成功，即将跳转到交易详情页面...", { autoClose: 2000 })
+        toast("请求成功，等待卖方确认。", { autoClose: 2000 })
+        tradestatus.value = 0
+        console.log(response.data.msg)
+      } else {
+        console.log(response.data.msg)
+        toast(response.data.msg, { autoClose: 3000 })
+      }
+    } catch (error) {
+      console.error('请求失败:', error)
+      toast('请求失败，请稍后重试！')
+    }
+  }
+}else if(posterInfo.id == customerID.value){
+    try {
+      console.log('撤销帖子:', postDetail.id)
+      const token = localStorage.getItem("token")
+      const response = await axios.delete('/api/post/'+postDetail.id, {
+        headers: {
+          Authorization: token, // 在请求头中添加 Authorization
+        },
+      }
+      )
+
+      if (response.data.code === 1) {
+        toast("帖子删除成功，即将跳转至主页！", { autoClose: 2000 })
         setTimeout(() => {
-          router.replace("user/transactionRecord")
+          router.replace("/")
         }, 2000)
         console.log(response.data.msg)
       } else {
@@ -297,12 +371,28 @@ const handleRequest = async () => {
       console.error('请求失败:', error)
       toast('请求失败，请稍后重试！')
     }
-
+  }
+  else if(posterInfo.id != customerID.value && tradestatus.value != -1){
+    toast("交易已建立，请在个人中心处查看交易记录详情！", { autoClose: 2000 })
   }
 }
 
+const checkTokenValidity = () => {
+    const token = localStorage.getItem('token');
+    const tokenExpiration = Number(localStorage.getItem('tokenExpiration'));
+
+    if (!token || Date.now() > tokenExpiration) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('tokenExpiration');
+      localStorage.setItem('isLoggedIn', 'false');
+      toast.error('登录已过期，请重新登录！');
+      router.push('/login');
+    }
+};
+
 // 生命周期
 onMounted(() => {
+  checkTokenValidity();
   fetchPostDetail();
   checkLoginStatus()
   document.title = `商品详情 - ${route.query.title || '未命名'}`
