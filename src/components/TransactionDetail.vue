@@ -14,8 +14,8 @@
   
       <div class="product-container">
         <div class="img-container">
-          <div class="type-tag" :class="'type-' + postDetail.type">
-            {{ postDetail.type }}
+          <div class="type-tag" :class="'type-' + protype[postDetail.type]">
+            {{ protype[postDetail.type] }}
           </div>
   
           <!-- 商品图片区域 -->
@@ -73,11 +73,12 @@
           <!-- 动态显示按钮 -->
             <div v-if="payee.id == customerID && traderecord.status == 0">
                 <button class="confirm-btn" @click="handleRequest('confirm')">确认交易</button>
-                <button class="cancel-btn" @click="handleRequest('cancel')">取消交易</button>
             </div>
             <div v-else-if="payer.id == customerID && traderecord.status == 1">
-                <button class="confirm-btn" @click="handleReconfirm('confirm')">再次确认交易</button>
-                <button class="cancel-btn" @click="handleReconfirm('cancel')">取消交易</button>
+                <button class="confirm-btn" @click="handleReconfirm('confirm')">确认交易</button>
+            </div>
+            <div v-if="traderecord.status == 0 || traderecord.status == 1">
+              <button class="cancel-btn" @click="handleReconfirm('cancel')">取消交易</button>
             </div>
             <div v-else>
                 <p>{{ showinfo }}</p>
@@ -113,6 +114,7 @@
   const isLoggedIn = ref(false)
   const customerID = ref(Number(localStorage.getItem("userID")))
   const showinfo = ref('')
+  const protype = ['买', '卖', '租', '借']
   
   
   // 放大功能逻辑

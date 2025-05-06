@@ -14,8 +14,8 @@
 
     <div class="product-container">
       <div class="img-container">
-        <div class="type-tag" :class="'type-' + postDetail.type">
-          {{ postDetail.type }}
+        <div class="type-tag" :class="'type-' + protype[postDetail.type]">
+          {{ protype[postDetail.type] }}
         </div>
 
         <!-- 商品图片区域 -->
@@ -91,6 +91,7 @@ const isLoggedIn = ref(false)
 const customerID = ref(Number(localStorage.getItem("userID")))
 const showinfo = ref('')
 const tradestatus = ref(-1)
+const protype = ['买', '卖', '租', '借']
 
 
 // 放大功能逻辑
