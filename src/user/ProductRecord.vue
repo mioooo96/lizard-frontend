@@ -4,35 +4,29 @@
       <div 
         v-for="product in products" 
         :key="product.id" 
-        class="product-card"
+        class="product-item" 
         @click="handleProductClick(product)"
       >
-        <!-- 类型标签 -->
-        <div class="type-tag" :class="'type-' + protype[product.type]">
-          {{ protype[product.type] }}
-        </div>
-        <!-- 商品图片 -->
-        <div class="product-image-wrapper">
-          <img :src="product.imageUrl" class="product-image" alt="商品图片">
-        </div>
-        <!-- 描述信息 -->
-        <div class="product-info">
+        <img :src="product.imageUrl" class="product-image" alt="商品图片">
+        <div class="info-container">
           <h3>{{ product.title }}</h3>
           <div class="meta-info">
-            <p class="price">{{ product.price }}元</p>
+            <span class="type-badge" :class="'type-' + protype[product.type]">
+              {{ protype[product.type] }}
+            </span>
+            <span v-if="product.type === 0 || product.type === 1" class="price">{{ product.price }}元</span>
+            <span v-if="product.type === 2 || product.type === 3" class="price">{{ product.price }}元/天</span>
           </div>
-          <p class="description">{{ product.contentBrief }}</p>
         </div>
       </div>
-
-      <div v-if="loading" class="loading">加载中...</div>
-      <div v-if="noMore" class="no-more">没有更多数据了</div>
     </div>
+    <div v-if="loading" class="no-more">加载中...</div>
+    <div v-if="noMore" class="no-more">没有更多数据了</div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted,onBeforeMount } from 'vue'
 import type { ProductInter, Products } from '@/types'
 import {useRouter} from 'vue-router'
 import axios from 'axios'
@@ -105,7 +99,7 @@ const handleScroll = (e: Event) => {
   }
 }
 
-onMounted(() => {
+onBeforeMount(() => {
   loadMore()
 })
 
@@ -121,7 +115,6 @@ const handleProductClick = (product: ProductInter) => {
 </script>
 
 <style scoped>
-/* 保持与主页完全一致的样式 */
 .product-container {
   height: 80vh;
   overflow-y: auto;
@@ -129,95 +122,62 @@ const handleProductClick = (product: ProductInter) => {
 }
 
 .product-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
-.product-card {
-  position: relative;
-  border: 1px solid #eee;
+.product-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  background: #fff;
   border-radius: 8px;
-  overflow: hidden;
-  transition: transform 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  background: white;
+  transition: transform 0.3s;
 }
 
-.product-card:hover {
+.product-item:hover {
   transform: translateY(-5px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.product-image-wrapper {
-  height: 200px;
-  overflow: hidden;
 }
 
 .product-image {
-  width: 100%;
-  height: 100%;
+  width: 87px;
+  height: 87px;
+  border-radius: 6px;
+  margin-right: 20px;
   object-fit: cover;
-  transition: transform 0.3s;
 }
 
-.product-image:hover {
-  transform: scale(1.05);
-}
-
-.product-info {
-  padding: 15px;
+.info-container {
+  flex: 1;
 }
 
 .meta-info {
+  margin-top: 8px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin: 10px 0;
+  gap: 10px;
 }
+
+.type-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: white;
+  font-weight: bold;
+}
+
+.type-买 { background: #f39c12; }
+.type-卖 { background: #e74c3c; }
+.type-租 { background: #3498db; }
+.type-借 { background: #2ecc71; }
 
 .price {
   color: #e4393c;
   font-weight: bold;
   font-size: 1.2em;
-}
-
-.post-time {
-  color: #666;
-  font-size: 0.9em;
-}
-
-.description {
-  color: #666;
-  font-size: 0.95em;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.type-tag {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  color: white;
-  font-weight: bold;
-  z-index: 2;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  
-  /* 与主页完全一致的类型颜色 */
-  &.type-买 { background: #f39c12; }
-  &.type-卖 { background: #e74c3c; }
-  &.type-租 { background: #3498db; }
-  &.type-借 { background: #2ecc71; }
 }
 
 .loading, .no-more {

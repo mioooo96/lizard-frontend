@@ -4,7 +4,7 @@
         <!-- 商家信息栏-->
         <div class="merchant-basic">
           <img class="merchant-avatar" :src="posterInfo.avatar" alt="商家头像">
-          <span class="merchant-id">{{ posterInfo.id }}</span>
+          <span class="merchant-id">{{ posterInfo.nickname }}</span>
         </div>
         <button class="contact-button" @click="contactSeller">
           <!---- 电话图标... -->
@@ -19,31 +19,34 @@
           </div>
   
           <!-- 商品图片区域 -->
-          <div class="product-img">
-            <div class="magnifier-container" @click="toggleZoom">
-              <img ref="productImage" :src="currentImage" alt="商品图片" class="main-image">
-            </div>
-          </div>
-        </div>
-        <!-- 缩略图列表 -->
-        <div class="thumbnail-wrapper">
           <button class="arrow-btn left" @click="switchImage((images.length+currentImageIndex - 1)%images.length)">
             &lt;
           </button>
-          <div class="thumbnail-list">
-            <div v-for="(img, index) in images" :key="index" class="thumbnail-item"
-              :class="{ active: currentImageIndex === index }" @click="switchImage(index)">
-              <img :src="img" :alt="'商品图' + (index + 1)" class="thumbnail-img">
+          <div class="product-img">
+            <div class="magnifier-container" @click="toggleZoom">
+              <img ref="productImage" :src="currentImage" alt="商品图片" class="main-image">
             </div>
           </div>
           <button class="arrow-btn right" @click="switchImage((images.length+currentImageIndex + 1)%images.length)">
             &gt;
           </button>
         </div>
+        <!-- 缩略图列表 -->
+        <div class="thumbnail-wrapper">
+          <div class="thumbnail-list">
+            <div v-for="(img, index) in images" :key="index" class="thumbnail-item"
+              :class="{ active: currentImageIndex === index }" @click="switchImage(index)">
+              <img :src="img" :alt="'商品图' + (index + 1)" class="thumbnail-img">
+            </div>
+          </div>
+        </div>
         <!-- 商品详细信息区域 -->
         <div class="detail">
-          <div class="price1">
-            ￥{{ postDetail.price }}
+          <div v-if="postDetail.type === 0 || postDetail.type === 1" class="price1">
+            {{ postDetail.price }}元
+          </div>
+          <div v-if="postDetail.type === 2 || postDetail.type === 3" class="price1">
+            {{ postDetail.price }}元/天
           </div>
           <div class="title">
             {{ postDetail.title }}
@@ -103,7 +106,7 @@
   </template>
   
   <script lang="ts" setup>
-  import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+  import { ref, reactive, computed, onMounted, onUnmounted,onBeforeMount } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { toast } from 'vue3-toastify'
   import axios from 'axios'
@@ -250,6 +253,7 @@
         // 将返回的数据绑定到 posterInfo
         Object.assign(posterInfo, response.data.data);
         console.log('发帖人信息:', posterInfo);
+        console.log('浏览人信息:', customerID.value);
       } else {
         toast.error(`获取发帖人信息失败：${response.data.msg}`);
       }
@@ -525,11 +529,11 @@ const handleReconfirm = async (action: 'confirm' | 'cancel') => {
   }
   
   // 生命周期
-  onMounted(() => {
+  onBeforeMount(() => {
     checkTokenValidity();
     checkLoginStatus()
     fetchPostDetail();
-    document.title = `商品详情 - ${route.query.title || '未命名'}`
+    document.title = `交易详情 - ${route.query.title || '未命名'}`
     document.addEventListener('keydown', handleKeyDown)
   })
   
@@ -573,37 +577,38 @@ const handleReconfirm = async (action: 'confirm' | 'cancel') => {
   }
   
   .product-container {
-    margin: 20px;
-    width: 90%;
-    max-width: 1000px;
-    background-color: white;
-    border-radius: 15px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-    overflow: hidden;
-    justify-content: center;
-    align-items: center;
-  }
+  margin: 20px;
+  width: 90%;
+  max-width: 1000px;
+  background-color: white;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  overflow: hidden;
+  justify-content: center;
+  align-items: center;
+}
   
   .product-container:hover {
     transform: translateY(-5px);
   }
   
   .img-container {
-    position: relative;
-    width: 99%;
-    margin-top: 10px;
-    border: 1px solid gray;
-    border-radius: 10px;
-    height: auto;
-    /* 移除固定高度 */
-    padding-bottom: 20px;
-  }
+  position: relative; /* 确保子元素可以使用绝对定位 */
+  width: 100%;
+  border-radius: 10px;
+  height: auto;
+  padding-bottom: 20px;
+  background-color: rgba(124, 245, 188, 0.251);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
   
   .type-tag {
-    position: relative;
+    position: absolute;
     top: 10px;
     left: 10px;
     width: 60px;
@@ -643,14 +648,14 @@ const handleReconfirm = async (action: 'confirm' | 'cancel') => {
   }
   
   .main-image {
-    margin-top: 30px;
-    width: 100%;
-    height: auto;
-    max-height: 480px;
-    object-fit: contain;
-    border-radius: 8px;
-    transition: transform 0.2s;
-  }
+  margin-top: 30px;
+  width: 100%;
+  height: auto;
+  max-height: 480px;
+  object-fit: contain;
+  border-radius: 8px;
+  transition: transform 0.2s;
+}
   
   .main-image:hover {
     transform: scale(1.02);
@@ -883,7 +888,6 @@ const handleReconfirm = async (action: 'confirm' | 'cancel') => {
     justify-content: center;
     width: 100%;
     max-width: 800px;
-    margin: 20px auto;
     padding: 0 40px;
   }
   
@@ -909,24 +913,25 @@ const handleReconfirm = async (action: 'confirm' | 'cancel') => {
   }
   
   /* 箭头按钮样式 */
-  .arrow-btn {
-    width: 32px;
-    height: 32px;
-    border: none;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    color: #666;
-    cursor: pointer;
-    font-size: 18px;
-    transition: all 0.3s ease;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    z-index: 2;
-  }
+.arrow-btn {
+  position: absolute; /* 绝对定位 */
+  top: 50%; /* 垂直居中 */
+  transform: translateY(-50%); /* 修正垂直居中偏移 */
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  color: #666;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
   
   .arrow-btn:hover:not(:disabled) {
     background: #fff;
@@ -940,11 +945,11 @@ const handleReconfirm = async (action: 'confirm' | 'cancel') => {
   }
   
   .left {
-    margin-right: 10px;
+    left: 10px;
   }
   
   .right {
-    margin-left: 10px;
+    right: 10px;
   }
 
   /* 交易信息样式 */

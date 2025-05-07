@@ -124,7 +124,7 @@
   }
 
   input {
-    width: 100%;
+    width: 94%;
     padding: 0.8rem;
     border: 1px solid #ddd;
     border-radius: 4px;

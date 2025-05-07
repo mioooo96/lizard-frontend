@@ -4,7 +4,7 @@
       <!-- 商家信息栏-->
       <div class="merchant-basic">
         <img class="merchant-avatar" :src="posterInfo.avatar" alt="商家头像">
-        <span class="merchant-id">{{ posterInfo.id }}</span>
+        <span class="merchant-id">{{ posterInfo.nickname }}</span>
       </div>
       <button class="contact-button" @click="contactSeller">
         <!---- 电话图标... -->
@@ -14,44 +14,49 @@
 
     <div class="product-container">
       <div class="img-container">
-        <div class="type-tag" :class="'type-' + protype[postDetail.type]">
+         <div class="type-tag" :class="'type-' + protype[postDetail.type]">
           {{ protype[postDetail.type] }}
-        </div>
+        </div> 
 
         <!-- 商品图片区域 -->
-        <div class="product-img">
-          <div class="magnifier-container" @click="toggleZoom">
-            <img ref="productImage" :src="currentImage" alt="商品图片" class="main-image">
-          </div>
-        </div>
-      </div>
-      <!-- 缩略图列表 -->
-      <div class="thumbnail-wrapper">
         <button class="arrow-btn left" @click="switchImage((images.length+currentImageIndex - 1)%images.length)">
           &lt;
         </button>
-        <div class="thumbnail-list">
-          <div v-for="(img, index) in images" :key="index" class="thumbnail-item"
-            :class="{ active: currentImageIndex === index }" @click="switchImage(index)">
-            <img :src="img" :alt="'商品图' + (index + 1)" class="thumbnail-img">
+        <div class="product-img">
+          <div class="magnifier-container" @click="toggleZoom">
+            <img ref="productImage" :src="currentImage" alt="商品图片" class="main-image">
           </div>
         </div>
         <button class="arrow-btn right" @click="switchImage((images.length+currentImageIndex + 1)%images.length)">
           &gt;
         </button>
       </div>
+      <!-- 缩略图列表 -->
+      <div class="thumbnail-wrapper">
+        <div class="thumbnail-list">
+          <div v-for="(img, index) in images" :key="index" class="thumbnail-item"
+            :class="{ active: currentImageIndex === index }" @click="switchImage(index)">
+            <img :src="img" :alt="'商品图' + (index + 1)" class="thumbnail-img">
+          </div>
+        </div>
+      </div>
       <!-- 商品详细信息区域 -->
       <div class="detail">
-        <div class="price1">
-          ￥{{ postDetail.price }}
+        <div v-if="postDetail.type === 0 || postDetail.type === 1" class="price1">
+          {{ postDetail.price }}元
+        </div>
+        <div v-else-if="postDetail.type === 2 || postDetail.type === 3" class="price1">
+          {{ postDetail.price }}元/天
         </div>
         <div class="title">
           {{ postDetail.title }}
         </div>
         <div class="description">
-          {{ postDetail.content }}
+          <p v-for="(paragraph, index) in postDetail.content.split('\n')" :key="index">
+            {{ paragraph }}
+          </p>
         </div>
-        <div class="hint-text">
+        <div v-if="customerID != postDetail.userId" class="hint-text">
           喜欢的朋友点"请求交易"
         </div>
         <button class="request-btn" @click="handleRequest">
@@ -78,7 +83,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted,onBeforeMount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue3-toastify'
 import axios from 'axios'
@@ -86,11 +91,10 @@ import 'vue3-toastify/dist/index.css'
 
 const route = useRoute()
 const router = useRouter()
-const id = route.query
 const isLoggedIn = ref(false)
 const customerID = ref(Number(localStorage.getItem("userID")))
 const showinfo = ref('')
-const tradestatus = ref(-1)
+
 const protype = ['买', '卖', '租', '借']
 
 
@@ -170,7 +174,6 @@ const fetchPostDetail = async () => {
           showinfo.value = '请求交易'
         }
         await fetchPosterInfo(postDetail.userId);
-        await fetchTradeInfo(postDetail.userId);
       }
     } else {
       toast.error(`获取帖子详情失败：${response.data.msg}`);
@@ -211,47 +214,6 @@ const fetchPosterInfo = async (userId: number) => {
     toast.error('获取发帖人信息失败，请稍后重试！');
   }
 };
-//查询交易记录
-const fetchTradeInfo = async (userId: number) => {
-  try {
-    const token = localStorage.getItem('token');
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (!token) {
-      toast.error('用户未登录，请先登录！');
-      router.push('/login');
-    }
-    if (!isLoggedIn) {
-      toast.error('用户未登录，请先登录！');
-      router.push('/login');
-    }
-    const response = await axios.get('/api/trade',{
-      params: {
-        payerId: customerID.value,
-        payeeId: userId,
-        postId: postDetail.id
-    }, 
-      headers: {
-        Authorization: token, // 在请求头中添加 token
-      },
-    });
-
-    if (response.data.code === 1) {
-      // 将返回的数据绑定到 posterInfo
-      if(response.data.data == null){
-        tradestatus.value = -1
-      }else{
-        tradestatus.value = response.data.data.status
-      }
-    } else {
-      //toast.error(`获取发帖人信息失败：${response.data.msg}`);
-      tradestatus.value = -1
-    }
-  } catch (error) {
-    console.error('获取交易信息失败:', error);
-    toast.error('获取交易信息失败，请稍后重试！');
-  }
-};
-
 // 计算属性
 const zoomedImageStyle = computed(() => ({
   transform: `translate(${currentPos.x}px, ${currentPos.y}px) scale(${zoomLevel.value})`,
@@ -317,7 +279,7 @@ const handleRequest = async () => {
     setTimeout(() => {
       router.replace("/login")
     }, 3000)
-  } else if(posterInfo.id != customerID.value && tradestatus.value == -1){ {
+  } else if(posterInfo.id != customerID.value){ {
     try {
       const token = localStorage.getItem("token")
       const response = await axios.post('/api/trade/create',
@@ -336,7 +298,6 @@ const handleRequest = async () => {
 
       if (response.data.code === 1) {
         toast("请求成功，等待卖方确认。", { autoClose: 2000 })
-        tradestatus.value = 0
         console.log(response.data.msg)
       } else {
         console.log(response.data.msg)
@@ -373,9 +334,6 @@ const handleRequest = async () => {
       toast('请求失败，请稍后重试！')
     }
   }
-  else if(posterInfo.id != customerID.value && tradestatus.value != -1){
-    toast("交易已建立，请在个人中心处查看交易记录详情！", { autoClose: 2000 })
-  }
 }
 
 const checkTokenValidity = () => {
@@ -392,11 +350,11 @@ const checkTokenValidity = () => {
 };
 
 // 生命周期
-onMounted(() => {
+onBeforeMount( async () => {
   checkTokenValidity();
   fetchPostDetail();
   checkLoginStatus()
-  document.title = `商品详情 - ${route.query.title || '未命名'}`
+  document.title = `帖子详情 - ${route.query.title || '未命名'}`
   document.addEventListener('keydown', handleKeyDown)
 })
 
@@ -459,18 +417,19 @@ const switchImage = (index: number) => {
 }
 
 .img-container {
-  position: relative;
-  width: 99%;
-  margin-top: 10px;
-  border: 1px solid gray;
+  position: relative; /* 确保子元素可以使用绝对定位 */
+  width: 100%;
   border-radius: 10px;
   height: auto;
-  /* 移除固定高度 */
   padding-bottom: 20px;
+  background-color: rgba(124, 245, 188, 0.251);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .type-tag {
-  position: relative;
+  position: absolute;
   top: 10px;
   left: 10px;
   width: 60px;
@@ -756,7 +715,7 @@ const switchImage = (index: number) => {
   justify-content: center;
   width: 100%;
   max-width: 800px;
-  margin: 20px auto;
+
   padding: 0 40px;
 }
 
@@ -783,8 +742,11 @@ const switchImage = (index: number) => {
 
 /* 箭头按钮样式 */
 .arrow-btn {
-  width: 32px;
-  height: 32px;
+  position: absolute; /* 绝对定位 */
+  top: 50%; /* 垂直居中 */
+  transform: translateY(-50%); /* 修正垂直居中偏移 */
+  width: 40px;
+  height: 40px;
   border: none;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.95);
@@ -793,12 +755,18 @@ const switchImage = (index: number) => {
   cursor: pointer;
   font-size: 18px;
   transition: all 0.3s ease;
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
   z-index: 2;
+}
+
+.arrow-btn.left {
+  left: 10px; /* 靠近图片左侧 */
+}
+
+.arrow-btn.right {
+  right: 10px; /* 靠近图片右侧 */
 }
 
 .arrow-btn:hover:not(:disabled) {

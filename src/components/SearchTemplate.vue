@@ -74,7 +74,8 @@
           </div>
           <div class="product-info">
             <h3>{{ product.title }}</h3>
-            <p class="price">{{ product.price }}元</p>
+            <p v-if="product.type === 0 || product.type === 1" class="price">{{ product.price }}元</p>
+            <p v-if="product.type === 2 || product.type === 3" class="price">{{ product.price }}元/天</p>
             <p class="description">{{ product.contentBrief }}</p>
           </div>
         </div>
@@ -82,6 +83,8 @@
         <div v-if="products.length === 0" class="no-data">
           <p>未找到相关数据，请尝试其他关键词。</p>
         </div>
+        <div v-if="loading" class="no-more">加载中...</div>
+        <div v-if="noMore" class="no-more">没有更多数据了</div>
       </div>
   
       <!-- 底部信息 -->
@@ -97,7 +100,7 @@
   </template>
   
 <script lang="ts" setup name="PagesTemplate">
-  import { ref,computed,onMounted,onUnmounted, watch } from 'vue'
+  import { ref,computed,onMounted,onUnmounted, watch,onBeforeMount } from 'vue'
   import {useRouter,useRoute} from 'vue-router'
   import {type ProductInter,type Products} from '@/types'
   import { useProductsStore } from '@/store/Products'
@@ -288,7 +291,7 @@ const getnewData = async (count: number): Promise<ProductInter[]> => {
     }
 };
   // 初始化检查
-  onMounted(() => {
+  onBeforeMount(() => {
     checkLoginStatus()
     checkTokenValidity() // 检查 token 有效性
     // 监听storage变化（用于其他页面登录后的状态同步）
@@ -538,4 +541,10 @@ const getnewData = async (count: number): Promise<ProductInter[]> => {
 .login-btn {
   /* 保持原有登录按钮样式 */
 }
+.no-more {
+    text-align: center;
+    margin: 20px 0;
+    font-size: 18px;
+    color: #999;
+  }
 </style>

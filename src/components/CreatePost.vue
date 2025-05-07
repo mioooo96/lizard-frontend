@@ -33,10 +33,10 @@
         <label for="type">类型:</label>
         <select v-model="post.type" required>
           <option value=null disabled>请选择类型</option>
-          <option value="0">买</option>
-          <option value="1">卖</option>
-          <option value="2">租</option>
-          <option value="3">借</option>
+          <option value="0">想买入</option>
+          <option value="1">想卖出</option>
+          <option value="2">想租出</option>
+          <option value="3">想借入</option>
         </select>
       </div>
       <div class="form-group">

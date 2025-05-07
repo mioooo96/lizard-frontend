@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref,computed,onMounted,onUnmounted } from 'vue'
+import { ref,computed,onMounted,onUnmounted,onBeforeMount } from 'vue'
 import axios from 'axios';
 import { tokenToString } from 'typescript';
 
@@ -100,7 +100,7 @@ const fetchUserInfo = async () => {
 };
 
 // 在组件加载时调用接口
-onMounted(() => {
+onBeforeMount(() => {
   fetchUserInfo();
 });
 </script>

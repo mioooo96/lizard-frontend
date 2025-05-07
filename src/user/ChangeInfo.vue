@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted,onBeforeMount } from 'vue';
 import axios from 'axios';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
@@ -66,7 +66,7 @@ if (!token) {
 // 获取用户信息
 const fetchUserInfo = async () => {
   try {
-    const response = await axios.get('http://47.122.116.174:8080/api/user/current', {
+    const response = await axios.get('/api/user/current', {
       headers: {
         Authorization: token, // 在请求头中添加 Authorization
       },
@@ -162,7 +162,7 @@ const saveChanges = async () => {
 };
 
 // 在组件加载时获取用户信息
-onMounted(() => {
+onBeforeMount(() => {
   fetchUserInfo();
 });
 </script>

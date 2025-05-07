@@ -6,7 +6,8 @@
         <div class="info-container">
           <h3>{{ record.title }}</h3>
           <div class="meta-info">
-            <span class="type-badge" :class="recordTypeClass(record.type)">{{ transactionType[record.type] }}</span>
+            <span v-if="record.payeeId === customerID" class="type-badge" :class="recordTypeClass(record.type)">{{ transactionType[record.type] }}</span>
+            <span v-if="record.payerId === customerID" class="type-badge" :class="recordTypeClass(record.type)">{{ transactionType2[record.type] }}</span>
             <span class="status-badge" :class="statusColorClass(record.status)">{{ transactionStatus[record.status] }}</span>
             <time class="time">{{ record.createTime }}</time>
           </div>
@@ -18,14 +19,14 @@
           删除
         </button>
       </div>
-      <div v-if="loading" class="loading">加载中...</div>
-      <div v-if="noMore" class="no-more">没有更多数据了</div>
     </div>
+    <div v-if="loading" class="no-more">加载中...</div>
+    <div v-if="noMore" class="no-more">没有更多数据了</div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted,onBeforeMount } from 'vue'
 import {type TransactionRecord,type Transactions} from '@/types'
 import {useRouter} from 'vue-router'
 import axios from 'axios'
@@ -39,8 +40,11 @@ let page = 1
 const pageSize = 10
 const total = ref(0) // 总记录数
 const router = useRouter()
-const transactionType = ['买卖', '买卖', '租借', '租借'] // 交易类型
-const transactionStatus = ['等待帖主确认', '等待对方再确认', '交易成功','交易失败'] // 交易状态
+const customerID = ref(Number(localStorage.getItem("userID"))) // 获取用户ID
+console.log('customerID:', customerID)
+const transactionType = ['买', '卖', '租', '借'] // 交易类型
+const transactionType2 = ['卖', '买', '借', '租'] // 交易类型
+const transactionStatus = ['等待帖主确认', '等待交易请求方再确认', '交易成功','交易失败'] // 交易状态
 
 // 加载更多数据
 const loadMore = async () => {
@@ -153,7 +157,7 @@ const statusColorClass = (status: number) => ({
 })
 
 // 生命周期
-onMounted(() => {
+onBeforeMount(() => {
   loadMore()
 })
 
@@ -163,7 +167,8 @@ const handleTransactionClick = (record: TransactionRecord) => {
       query:{
         payerId: record.payerId,
         payeeId: record.payeeId,
-        postId: record.postId
+        postId: record.postId,
+        title: record.title,
       }
     });
   window.open(route1.href, '_blank'); // 新标签页打开

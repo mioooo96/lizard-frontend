@@ -5,7 +5,6 @@
       <p class="warning-text">注意：删除账号后将不可恢复，请谨慎操作！</p>
       <form @submit.prevent="handleDeleteAccount">
         <div class="form-group">
-          <label for="password">密码</label>
           <input
             id="password"
             type="password"
@@ -109,7 +108,7 @@ h2 {
 }
 
 input {
-  width: 100%;
+  width: 94%;
   padding: 0.8rem;
   border: 1px solid #ddd;
   border-radius: 4px;

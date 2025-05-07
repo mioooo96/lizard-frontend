@@ -27,10 +27,10 @@
 
         <div class="nav-items">
           <router-link to="/">首页</router-link>
-          <router-link to="/show">卖出</router-link>
-          <router-link to="/buy">买入</router-link>
-          <router-link to="/lend">租出</router-link>
-          <router-link to="/borrow">借入</router-link>
+          <router-link to="/show">买入</router-link>
+          <router-link to="/buy">卖出</router-link>
+          <router-link to="/lend">借入</router-link>
+          <router-link to="/borrow">租出</router-link>
           <button class="publish-btn" @click="handlePublish">发布物品</button>
           <!-- 登录状态显示 -->
           <div v-if="isLoggedIn" class="user-info">
@@ -56,7 +56,7 @@
   
       <!-- 商品展示区 -->
       <h2 class="section-title">最新商品</h2>
-      <div class="product-section" @scroll="handleScroll">
+      <div class="product-section">
         <div class="product-list">
           <div 
             v-for="product in products"
@@ -74,11 +74,14 @@
           </div>
           <div class="product-info">
             <h3>{{ product.title }}</h3>
-            <p class="price">{{ product.price }}元</p>
+            <p v-if="product.type === 0 || product.type === 1" class="price">{{ product.price }}元</p>
+            <p v-if="product.type === 2 || product.type === 3" class="price">{{ product.price }}元/天</p>
             <p class="description">{{ product.contentBrief }}</p>
           </div>
         </div>
         </div>
+        <div v-if="loading" class="no-more">加载中...</div>
+        <div v-if="noMore" class="no-more">没有更多数据了</div>
       </div>
   
       <!-- 底部信息 -->
@@ -94,7 +97,7 @@
   </template>
   
 <script lang="ts" setup name="PagesTemplate">
-  import { ref,computed,onMounted,onUnmounted } from 'vue'
+  import { ref,computed,onMounted,onUnmounted,onBeforeMount } from 'vue'
   import {useRouter,useRoute} from 'vue-router'
   import {type ProductInter,type Products} from '@/types'
   import { useProductsStore } from '@/store/Products'
@@ -154,13 +157,16 @@
   }
 
   // 滚动处理
-  const handleScroll = (e: Event) => {
-    const container = e.target as HTMLElement
-    const { scrollTop, scrollHeight, clientHeight } = container
-    if (scrollHeight - (scrollTop + clientHeight) < 50) {
-      loadMore()
+  const handleScroll = () => {
+    const scrollTop = window.scrollY; // 当前滚动位置
+    const windowHeight = window.innerHeight; // 可视窗口高度
+    const documentHeight = document.documentElement.scrollHeight; // 文档总高度
+  
+    // 当滚动接近页面底部时加载更多数据
+    if (scrollTop + windowHeight >= documentHeight - 50) {
+      loadMore();
     }
-  }
+  };
   
   const loadMore = async () => {
   if (loading.value || noMore.value) return;
@@ -264,7 +270,7 @@
     }
 };
   // 初始化检查
-  onMounted(() => {
+  onBeforeMount(async () => {
     checkLoginStatus()
     checkTokenValidity()
     // 监听storage变化（用于其他页面登录后的状态同步）
@@ -276,8 +282,14 @@
   })
 
   // 移除监听器
+  onMounted(() => {
+    window.addEventListener('scroll', handleScroll); // 监听窗口滚动事件
+    loadMore(); // 初次加载数据
+  });
+  
   onUnmounted(() => {
-   window.removeEventListener('storage', checkLoginStatus)
+    window.removeEventListener('scroll', handleScroll); // 移除滚动事件监听
+    window.removeEventListener('storage', checkLoginStatus)
   })
 </script>
   
@@ -343,7 +355,7 @@
   
   .search-input-wrapper {
     position: relative;
-    max-width: 600px;
+    max-width: 1000px;
     margin: 0 auto;
   }
   
@@ -358,7 +370,7 @@
   
   .search-btn {
     position: absolute;
-    right: 0px;
+    right: -20px;
     top: 50%;
     transform: translateY(-50%);
     background: none;
@@ -374,8 +386,8 @@
   }
 
   .product-section {
-    height: 80vh; /* 设置固定高度 */
-    overflow-y: auto; /* 启用垂直滚动 */
+    height: auto; /* 设置固定高度 */
+    overflow: visible; /* 启用垂直滚动 */
     scrollbar-width: none;
     -ms-overflow-style: none; /* IE 和 Edge */
   }
@@ -505,5 +517,17 @@
 
 .login-btn {
   /* 保持原有登录按钮样式 */
+}
+.no-more {
+    text-align: center;
+    margin: 20px 0;
+    font-size: 18px;
+    color: #999;
+  }
+  
+  html, body {
+  height: 100%;
+  margin: 0;
+  overflow: auto; /* 启用全局滚动 */
 }
 </style>

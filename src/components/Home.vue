@@ -26,10 +26,10 @@
 
         <div class="nav-items">
           <router-link to="/">首页</router-link>
-          <router-link to="/show">卖出</router-link>
-          <router-link to="/buy">买入</router-link>
-          <router-link to="/lend">租出</router-link>
-          <router-link to="/borrow">借入</router-link>
+          <router-link to="/show">买入</router-link>
+          <router-link to="/buy">卖出</router-link>
+          <router-link to="/lend">借入</router-link>
+          <router-link to="/borrow">租出</router-link>
           <button class="publish-btn" @click="handlePublish">发布物品</button>
           <!-- 登录状态显示 -->
           <div v-if="isLoggedIn" class="user-info">
@@ -53,25 +53,30 @@
         </div>
       </nav>
 
-      <!-- 分类入口 -->
-      <div class="category-section">
-        <h2 class="section-title">功能专区</h2>
-        <div class="category-list">
-          <div
-            v-for="category in categories"
-            :key="category.id"
-            class="category-item"
-            @click="handleCategoryClick(category)"
-          >
-            <div class="category-icon">{{ category.emoji }}</div>
-            <span>{{ category.name }}</span>
-          </div>
-        </div>
+      <div class="recommend-section">
+        <h2 class="section-title">推荐区</h2>
+          <div class="recommend-card">
+          <div class="recommend-grid">
+            <div
+              v-for="item in recommendItems"
+             :key="item.id"
+             class="recommend-item"
+             @click="handleRecommendClick(item)"
+           >
+              <div class="recommend-icon">{{ item.emoji }}</div>
+              <div class="recommend-info">
+               <h3>{{ item.name }}</h3>
+               <p>{{ item.description }}</p>
+             </div>
+            </div>
+         </div>
+       </div>
       </div>
+
 
       <!-- 商品展示区 -->
       <h2 class="section-title">最新商品</h2>
-      <div class="product-section" @scroll="handleScroll">
+      <div class="product-section">
         <div class="product-list">
           <div
             v-for="product in products"
@@ -89,13 +94,14 @@
           </div>
           <div class="product-info">
             <h3>{{ product.title }}</h3>
-            <p class="price">{{ product.price }}</p>
+            <p v-if="product.type === 0 || product.type === 1" class="price">{{ product.price }}元</p>
+            <p v-if="product.type === 2 || product.type === 3" class="price">{{ product.price }}元/天</p>
             <p class="description">{{ product.contentBrief }}</p>
           </div>
         </div>
-        <div v-if="loading" class="loading">加载中...</div>
-        <div v-if="noMore" class="no-more">没有更多数据了</div>
         </div>
+        <div v-if="loading" class="no-more">加载中...</div>
+        <div v-if="noMore" class="no-more">没有更多数据了</div>
       </div>
 
       <!-- 底部信息 -->
@@ -111,7 +117,7 @@
   </template>
 
 <script lang="ts" setup name="Home">
-  import { ref,computed,onMounted,onUnmounted } from 'vue'
+  import { ref,computed,onMounted,onUnmounted, onBeforeMount } from 'vue'
   import {useRouter} from 'vue-router'
   import {type ProductInter,type Products} from '@/types'
   import { useProductsStore } from '@/store/Products'
@@ -139,7 +145,6 @@
     username: '',
     avatar: '',
     phone: '',
-    password: '******', // 密码通常不会通过接口返回，保持隐藏
   });
   const handleSearch = () => {
     console.log('搜索关键词:', searchKeyword.value);
@@ -155,70 +160,111 @@
     });
   }
 
+
+// 推荐区数据
+interface RecommendItem {
+  id: number
+  name: string
+  emoji: string
+  description: string
+  keyword: string
+}
+
+const recommendItems = ref<RecommendItem[]>([
+  { id: 1, name: '手机', emoji: '📱', description: '最新款手机推荐', keyword: '手机' },
+  { id: 2, name: '衣服', emoji: '👗', description: '时尚潮流服饰', keyword: '衣服' },
+  { id: 3, name: '家电', emoji: '🏠', description: '高性价比家电', keyword: '家电' },
+  { id: 4, name: '书籍', emoji: '📚', description: '精选书籍推荐', keyword: '书籍' },
+  { id: 5, name: '电脑', emoji: '💻', description: '高性能电脑推荐', keyword: '电脑' },
+  { id: 6, name: '耳机', emoji: '🎧', description: '音质极佳耳机', keyword: '耳机' },
+  { id: 7, name: '运动鞋', emoji: '👟', description: '舒适运动鞋', keyword: '运动鞋' },
+  { id: 8, name: '手表', emoji: '⌚', description: '时尚手表推荐', keyword: '手表' },
+  { id: 9, name: '家具', emoji: '🛋️', description: '实用家具推荐', keyword: '家具' },
+  { id: 10, name: '相机', emoji: '📷', description: '高质量相机', keyword: '相机' },
+  { id: 11, name: '乐器', emoji: '🎸', description: '精选乐器推荐', keyword: '乐器' },
+  { id: 12, name: '化妆品', emoji: '💄', description: '热门化妆品', keyword: '化妆品' },
+  { id: 13, name: '玩具', emoji: '🧸', description: '儿童玩具推荐', keyword: '玩具' },
+  { id: 14, name: '健身器材', emoji: '🏋️', description: '家用健身器材', keyword: '健身器材' },
+  { id: 15, name: '厨房用品', emoji: '🍳', description: '实用厨房用品', keyword: '厨房用品' },
+  { id: 16, name: '旅行用品', emoji: '🧳', description: '必备旅行用品', keyword: '旅行用品' },
+])
+// 点击推荐项跳转到搜索页
+const handleRecommendClick = (item: RecommendItem) => {
+  console.log('点击推荐项:', item.name)
+  router.push({
+    path: '/search',
+    query: { keyword: item.keyword },
+  })
+}
+
   const handlePublish = () => {
     router.push('/CreatePost');
     console.log('跳转到发布页面')
   }
 
   // 滚动处理
-  const handleScroll = (e: Event) => {
-    const container = e.target as HTMLElement
-    const { scrollTop, scrollHeight, clientHeight } = container
-    if (scrollHeight - (scrollTop + clientHeight) < 50) {
-      loadMore()
+  const handleScroll = () => {
+    const scrollTop = window.scrollY; // 当前滚动位置
+    const windowHeight = window.innerHeight; // 可视窗口高度
+    const documentHeight = document.documentElement.scrollHeight; // 文档总高度
+
+    // 当滚动接近页面底部时加载更多数据
+    if (scrollTop + windowHeight >= documentHeight - 50) {
+      loadMore();
     }
   }
 
   const loadMore = async () => {
-  if (loading.value || noMore.value) return;
+    if (loading.value || noMore.value) return;
 
-  loading.value = true;
+    loading.value = true;
 
-  try {
-    const token = localStorage.getItem('token');
-    if(!token){
-      toast.error('请先登录');
-      router.push('/login');
-    }
-    const response = await axios.get('/api/post/time', {
-      params: {
-        pageNum:page,
-        pageSize:8,
-      },
-      headers:{
-        Authorization: token,
+    try {
+      const token = localStorage.getItem('token');
+      if(!token){
+        toast.error('请先登录');
+        router.push('/login');
       }
-    });
+      const response = await axios.get('/api/post/time', {
+        params: {
+          pageNum:page,
+          pageSize:8,
+        },
+        headers:{
+          Authorization: token,
+        }
+      });
 
-    if (response.data.code === 1) {
-      console.log('加载成功:', response.data);
-      const { records, total } = response.data.data;
+      if (response.data.code === 1) {
+        console.log('加载成功:', response.data);
+        const { records, total } = response.data.data;
 
-      // 将新数据追加到 products 中
-      products.value = [...products.value, ...records];
+        // 将新数据追加到 products 中
+        products.value = [...products.value, ...records];
 
-      // 判断是否还有更多数据
-      if (products.value.length >= total) {
-        noMore.value = true;
+        // 判断是否还有更多数据
+        if (products.value.length >= total) {
+          noMore.value = true;
+        }
+
+        page++; // 增加页码
+      } else {
+        toast.error(`加载失败：${response.data.msg}`);
       }
-
-      page++; // 增加页码
-    } else {
-      toast.error(`加载失败：${response.data.msg}`);
+    } catch (error) {
+      console.error('加载失败:', error);
+      toast.error('加载失败，请稍后重试！');
+    } finally {
+      loading.value = false;
     }
-  } catch (error) {
-    console.error('加载失败:', error);
-    toast.error('加载失败，请稍后重试！');
-  } finally {
-    loading.value = false;
-  }
-};
+  };
 
   const handleProductClick = (product: ProductInter) => {
     const route1 = router.resolve({
       path:'/ProductDetail',
       query:{
-        id: product.id
+        id: product.id,
+        title: product.title,
       }
     });
   window.open(route1.href, '_blank'); // 新标签页打开
@@ -272,7 +318,6 @@
           username: data.username,
           avatar: data.avatar, // 默认头像
           phone: data.phone || '未绑定手机号',
-          password: '******', // 密码不从接口返回
         };
         localStorage.setItem("userID",user.value.id)
         console.log('用户信息:', user.value);
@@ -284,8 +329,8 @@
       //alert('获取用户信息失败，请稍后重试！');
     }
   };
-  // 初始化检查
-  onMounted(() => {
+
+  onBeforeMount(async () =>{
     checkLoginStatus()
     checkTokenValidity()
     // 监听storage变化（用于其他页面登录后的状态同步）
@@ -294,12 +339,21 @@
     if (localStorage.getItem('isLoggedIn') === 'true') {
       fetchUserInfo();
     }
-  })
+  });
 
   // 移除监听器
   onUnmounted(() => {
    window.removeEventListener('storage', checkLoginStatus)
   })
+
+  onMounted(() => {
+    window.addEventListener('scroll', handleScroll); // 监听窗口滚动事件
+    loadMore(); // 初次加载数据
+  });
+
+  onUnmounted(() => {
+    window.removeEventListener('scroll', handleScroll); // 移除滚动事件监听
+  });
 
   interface Category {
     id: number
@@ -396,7 +450,7 @@
 
   .search-input-wrapper {
     position: relative;
-    max-width: 600px;
+    max-width: 1000px;
     margin: 0 auto;
   }
 
@@ -411,7 +465,7 @@
 
   .search-btn {
     position: absolute;
-    right: 0px;
+    right: -20px;
     top: 50%;
     transform: translateY(-50%);
     background: none;
@@ -427,8 +481,8 @@
   }
 
   .product-section {
-    height: 80vh; /* 设置固定高度 */
-    overflow-y: auto; /* 启用垂直滚动 */
+    height: auto; /* 设置固定高度 */
+    overflow: visible; /* 启用垂直滚动 */
     scrollbar-width: none;
     -ms-overflow-style: none; /* IE 和 Edge */
   }
@@ -586,4 +640,67 @@
     margin-bottom: 10px;
   }
 
+  .no-more {
+    text-align: center;
+    margin: 20px 0;
+    font-size: 18px;
+    color: #999;
+  }
+
+  html, body {
+  height: 100%;
+  margin: 0;
+  overflow: auto; /* 启用全局滚动 */
+}
+
+.recommend-section {
+  margin: 30px 0;
+}
+
+.recommend-card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+}
+
+.recommend-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4列布局 */
+  gap: 20px;
+}
+
+.recommend-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.recommend-item:hover {
+  transform: translateY(-5px);
+}
+
+.recommend-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.recommend-info h3 {
+  text-align: center;
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.recommend-info p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: #666;
+}
 </style>

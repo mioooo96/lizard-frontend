@@ -4,7 +4,6 @@
       <h2>修改密码</h2>
       <form @submit.prevent="handleChangePassword">
         <div class="form-group">
-          <label for="oldPassword">旧密码</label>
           <input
             id="oldPassword"
             type="password"
@@ -14,7 +13,6 @@
           />
         </div>
         <div class="form-group">
-          <label for="newPassword">新密码</label>
           <input
             id="newPassword"
             type="password"
@@ -24,7 +22,6 @@
           />
         </div>
         <div class="form-group">
-          <label for="confirmPassword">确认新密码</label>
           <input
             id="confirmPassword"
             type="password"
@@ -108,64 +105,60 @@ export default {
 </script>
 
 <style scoped>
-.login-container {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #f5f7fa;
-  text-align: center;
-}
+  .login-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f5f7fa;
+  }
 
-.login-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* 水平居中 */
-}
+  .login-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+  }
 
-h2 {
-  text-align: center;
-  color: #2c3e50;
-  margin-bottom: 1.5rem;
-}
+  h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+  }
 
-.form-group {
-  margin-bottom: 1rem;
-}
+  .form-group {
+    margin-bottom: 1rem;
+  }
 
-input {
-  width: 100%;
-  padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-}
+  input {
+    width: 94%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+  }
 
-button {
-  width: 100%;
-  padding: 0.8rem;
-  background: #00aaff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 1rem;
-}
+  button {
+    width: 100%;
+    padding: 0.8rem;
+    background: #00aaff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 1rem;
+  }
 
-.login-tips {
-  margin-top: 1rem;
-  text-align: center;
-}
+  .login-tips {
+    margin-top: 1rem;
+    text-align: center;
+  }
 
-a {
-  color: #00aaff;
-  text-decoration: none;
-  font-size: 0.9rem;
-}
+  a {
+    color: #00aaff;
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
 </style>
