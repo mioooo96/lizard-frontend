@@ -39,7 +39,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import axios from "axios";
 import { ref } from "vue";
 import { useRouter } from 'vue-router';
@@ -56,7 +56,7 @@ export default {
 
     const handleChangePassword = async () => {
       if (newPassword.value !== confirmPassword.value) {
-        toaast("两次输入的新密码不一致！");
+        toast("两次输入的新密码不一致！");
         return;
       }
 
