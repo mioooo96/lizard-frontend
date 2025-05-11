@@ -103,14 +103,12 @@
   import { ref,computed,onMounted,onUnmounted, watch,onBeforeMount } from 'vue'
   import {useRouter,useRoute} from 'vue-router'
   import {type ProductInter,type Products} from '@/types'
-  import { useProductsStore } from '@/store/Products'
   import axios from 'axios'
   import { toast } from 'vue3-toastify';
   import 'vue3-toastify/dist/index.css';
 
   const Props = defineProps(['keysearch'])
   console.log(Props.keysearch)
-  const ProductsStore = useProductsStore()
   //const products = ProductsStore.getProductsByPtype(Props.Ptype)
   const searchKeyword = ref('')
   const isLoggedIn = ref(false)
