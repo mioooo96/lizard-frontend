@@ -602,7 +602,8 @@ const switchImage = (index: number) => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 10px;
+  margin: 10px auto; /* 水平居中 */
+  display: block; /* 让按钮成为块级元素 */
 }
 
 .request-btn:hover {

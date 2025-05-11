@@ -1012,8 +1012,9 @@ const handleReconfirm = async (action: 'confirm' | 'cancel') => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 10px;
   box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3); /* 添加阴影 */
+  margin: 10px auto; /* 水平居中 */
+  display: block; /* 让按钮成为块级元素 */
 }
 
 .confirm-btn:hover {
@@ -1043,8 +1044,9 @@ const handleReconfirm = async (action: 'confirm' | 'cancel') => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 10px;
   box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3); /* 添加阴影 */
+  margin: 10px auto; /* 水平居中 */
+  display: block; /* 让按钮成为块级元素 */
 }
 
 .cancel-btn:hover {
@@ -1058,4 +1060,3 @@ const handleReconfirm = async (action: 'confirm' | 'cancel') => {
   box-shadow: 0 2px 4px rgba(244, 67, 54, 0.2); /* 减弱阴影 */
 }
   </style>
-  

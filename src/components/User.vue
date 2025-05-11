@@ -40,7 +40,7 @@ const handleLogout = () => {
   // 实际应用中可能需要：
   // 1. 清除用户token
   // 2. 跳转到登录页
-  // localStorage.removeItem('token');
+  localStorage.removeItem('token');
   // router.push('/login');
   // 清除 localStorage 中的登录状态
   localStorage.removeItem('isLoggedIn');

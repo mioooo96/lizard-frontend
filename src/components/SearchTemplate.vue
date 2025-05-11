@@ -56,7 +56,7 @@
   
       <!-- 商品展示区 -->
       <h2 class="section-title">最新商品</h2>
-      <div class="product-section" @scroll="handleScroll">
+      <div class="product-section">
         <div class="product-list">
           <div 
             v-for="product in products"
@@ -147,28 +147,47 @@
   }
   
   const handlePublish = () => {
+    if(isLoggedIn.value === false){
+      toast.error('请先登录！', { autoClose: 2000 });
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+      return;
+    } 
     router.push('/CreatePost');
     console.log('跳转到发布页面')
   }
   
   const handleProductClick = (product: ProductInter) => {
-    router.push({
+    if(isLoggedIn.value === false){
+      toast.error('请先登录！', { autoClose: 2000 });
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+      return;
+    } 
+    const route1 = router.resolve({
       path:'/ProductDetail',
       query:{
         id: product.id,
+        title: product.title,
       }
-    })
+    });
+  window.open(route1.href, '_blank'); // 新标签页打开
   }
 
   // 滚动处理
-  const handleScroll = (e: Event) => {
-    const container = e.target as HTMLElement
-    const { scrollTop, scrollHeight, clientHeight } = container
-    if (scrollHeight - (scrollTop + clientHeight) < 50) {
-      loadMore()
-    }
+const handleScroll = () => {
+  const scrollTop = window.scrollY; // 当前滚动位置
+  const windowHeight = window.innerHeight; // 可视窗口高度
+  const documentHeight = document.documentElement.scrollHeight; // 文档总高度
+
+  // 当滚动接近页面底部时加载更多数据
+  if (scrollTop + windowHeight >= documentHeight - 50) {
+    loadMore();
   }
-  
+};
+
   // 加载更多数据
   const loadMore = async () => {
   if (loading.value || noMore.value) return;
@@ -187,11 +206,6 @@
 
 const getnewData = async (count: number): Promise<ProductInter[]> => {
     try {
-    const token = localStorage.getItem('token'); // 从 localStorage 获取 token
-    if (!token) {
-      toast('用户未登录，请先登录！');
-      router.push('/login'); // 跳转到登录页面
-    }
 
     // 构造请求参数
     const requestData = {
@@ -203,9 +217,6 @@ const getnewData = async (count: number): Promise<ProductInter[]> => {
     // 发送请求到后端
     const response = await axios.get('/api/post/search',{
       params: requestData,
-      headers: {
-        Authorization: token, // 在请求头中添加 token
-      },
     });
 
     // 检查返回结果
@@ -268,6 +279,11 @@ const getnewData = async (count: number): Promise<ProductInter[]> => {
 
   // 检查登录状态
   const checkLoginStatus = () => {
+    if(!localStorage.getItem('token')) {
+      localStorage.setItem('isLoggedIn', 'false')
+      return
+    }
+    checkTokenValidity()
     isLoggedIn.value = localStorage.getItem('isLoggedIn') === 'true'
   }
 
@@ -284,17 +300,14 @@ const getnewData = async (count: number): Promise<ProductInter[]> => {
       localStorage.removeItem('token');
       localStorage.removeItem('tokenExpiration');
       localStorage.setItem('isLoggedIn', 'false');
-      toast.error('登录已过期，请重新登录！');
-      router.push('/login');
     }
 };
   // 初始化检查
   onBeforeMount(() => {
     checkLoginStatus()
-    checkTokenValidity() // 检查 token 有效性
     // 监听storage变化（用于其他页面登录后的状态同步）
     loadMore()
-    window.addEventListener('storage', checkLoginStatus)
+    window.addEventListener('scroll', handleScroll); // 监听窗口滚动事件
     if (localStorage.getItem('isLoggedIn') === 'true') {
       fetchUserInfo();
     }
@@ -302,7 +315,7 @@ const getnewData = async (count: number): Promise<ProductInter[]> => {
 
   // 移除监听器
   onUnmounted(() => {
-   window.removeEventListener('storage', checkLoginStatus)
+   window.removeEventListener('scroll', handleScroll); // 移除滚动事件监听
   })
 
   watch(() => Props.keysearch, (newKey) => {
@@ -407,8 +420,6 @@ const getnewData = async (count: number): Promise<ProductInter[]> => {
   }
 
   .product-section {
-    height: 80vh; /* 设置固定高度 */
-    overflow-y: auto; /* 启用垂直滚动 */
     scrollbar-width: none;
     -ms-overflow-style: none; /* IE 和 Edge */
   }

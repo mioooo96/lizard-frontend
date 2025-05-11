@@ -141,17 +141,34 @@
   }
   
   const handlePublish = () => {
+    if(isLoggedIn.value === false){
+      toast.error('请先登录！', { autoClose: 2000 });
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+      return;
+    } 
+    // 跳转到发布页面
     router.push('/CreatePost');
     console.log('跳转到发布页面')
   }
   
   const handleProductClick = (product: ProductInter) => {
-    router.push({
+    if(isLoggedIn.value === false){
+      toast.error('请先登录！', { autoClose: 2000 });
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+      return;
+    } 
+    const route1 = router.resolve({
       path:'/ProductDetail',
       query:{
-        id: product.id
+        id: product.id,
+        title: product.title,
       }
-    })
+    });
+  window.open(route1.href, '_blank'); // 新标签页打开
   }
 
   // 滚动处理
@@ -172,19 +189,11 @@
   loading.value = true;
 
   try {
-    const token = localStorage.getItem('token');
-    if(!token){
-      toast.error('请先登录');
-      router.push('/login');
-    }
     const response = await axios.get('/api/post/type', {
       params: {
         type: Props.Ptype,
         pageNum: page,
         pageSize: 8,
-      },
-      headers:{
-        Authorization: token,
       }
     });
 
@@ -247,6 +256,11 @@
 
   // 检查登录状态
   const checkLoginStatus = () => {
+    if(!localStorage.getItem('token')){
+      isLoggedIn.value = false
+      return
+    }
+    checkTokenValidity()
     isLoggedIn.value = localStorage.getItem('isLoggedIn') === 'true'
   }
 
@@ -263,27 +277,19 @@
       localStorage.removeItem('token');
       localStorage.removeItem('tokenExpiration');
       localStorage.setItem('isLoggedIn', 'false');
-      toast.error('登录已过期，请重新登录！');
-      router.push('/login');
     }
 };
   // 初始化检查
   onBeforeMount(async () => {
     checkLoginStatus()
-    checkTokenValidity()
     // 监听storage变化（用于其他页面登录后的状态同步）
     loadMore()
     window.addEventListener('storage', checkLoginStatus)
+    window.addEventListener('scroll', handleScroll); // 监听窗口滚动事件
     if (localStorage.getItem('isLoggedIn') === 'true') {
       fetchUserInfo();
     }
   })
-
-  // 移除监听器
-  onMounted(() => {
-    window.addEventListener('scroll', handleScroll); // 监听窗口滚动事件
-    loadMore(); // 初次加载数据
-  });
   
   onUnmounted(() => {
     window.removeEventListener('scroll', handleScroll); // 移除滚动事件监听

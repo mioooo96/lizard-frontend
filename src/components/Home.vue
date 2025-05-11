@@ -136,6 +136,7 @@
   let productTimestamp = Date.now()
   const protype =['买','卖','租','借']
   const products = ref<ProductInter[]>([]);
+  const hasError = ref(false); // 标志位，记录是否已经显示过错误提示
 
   const user = ref({
     id: '',
@@ -196,6 +197,13 @@ const handleRecommendClick = (item: RecommendItem) => {
 }
 
   const handlePublish = () => {
+    if(isLoggedIn.value === false){
+      toast.error('请先登录！', { autoClose: 2000 });
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+      return;
+    } 
     router.push('/CreatePost');
     console.log('跳转到发布页面')
   }
@@ -218,18 +226,10 @@ const handleRecommendClick = (item: RecommendItem) => {
     loading.value = true;
 
     try {
-      const token = localStorage.getItem('token');
-      if(!token){
-        toast.error('请先登录');
-        router.push('/login');
-      }
       const response = await axios.get('/api/post/time', {
         params: {
-          pageNum:page,
-          pageSize:8,
-        },
-        headers:{
-          Authorization: token,
+          pageNum: page,
+          pageSize: 8,
         }
       });
 
@@ -246,18 +246,32 @@ const handleRecommendClick = (item: RecommendItem) => {
         }
 
         page++; // 增加页码
+        hasError.value = false; // 请求成功后重置错误状态
       } else {
-        toast.error(`加载失败：${response.data.msg}`);
+        if (!hasError.value) {
+          toast.error(`加载失败：${response.data.msg}`);
+          hasError.value = true; // 设置错误状态，防止重复弹出
+        }
       }
     } catch (error) {
       console.error('加载失败:', error);
-      toast.error('加载失败，请稍后重试！');
+      if (!hasError.value) {
+        toast.error('加载失败，请稍后重试！');
+        hasError.value = true; // 设置错误状态，防止重复弹出
+      }
     } finally {
       loading.value = false;
     }
   };
 
   const handleProductClick = (product: ProductInter) => {
+    if(isLoggedIn.value === false){
+      toast.error('请先登录！', { autoClose: 2000 });
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+      return;
+    }
     const route1 = router.resolve({
       path:'/ProductDetail',
       query:{
@@ -268,24 +282,25 @@ const handleRecommendClick = (item: RecommendItem) => {
   window.open(route1.href, '_blank'); // 新标签页打开
   }
 
-  const checkTokenValidity = () => {
+  const checkTokenValidity =  async() => {
     const token = localStorage.getItem('token');
     const tokenExpiration = Number(localStorage.getItem('tokenExpiration'));
 
     if (!token || Date.now() > tokenExpiration) {
+      // 清除本地存储中的登录信息
       localStorage.removeItem('token');
       localStorage.removeItem('tokenExpiration');
       localStorage.setItem('isLoggedIn', 'false');
-      toast.error('登录已过期，请重新登录！');
-      router.push('/login');
     }
-};
+  };
 
   // 检查登录状态
   const checkLoginStatus = () => {
     if(!localStorage.getItem('token')){
       isLoggedIn.value = false
+      return
     }
+    checkTokenValidity()
     isLoggedIn.value = localStorage.getItem('isLoggedIn') === 'true'
   }
 
@@ -298,6 +313,7 @@ const handleRecommendClick = (item: RecommendItem) => {
   const fetchUserInfo = async () => {
     try {
      const token = localStorage.getItem('token'); // 从 localStorage 获取 token
+     console.log('token:', token);
       if (!token) {
       // alert('用户未登录，请先登录！');
       // return;
@@ -319,6 +335,7 @@ const handleRecommendClick = (item: RecommendItem) => {
         };
         localStorage.setItem("userID",user.value.id)
         console.log('用户信息:', user.value);
+        console.log('isLoggedIn:', localStorage.getItem('isLoggedIn'));
       } else {
         toast(response.data.msg);
       }
@@ -329,28 +346,21 @@ const handleRecommendClick = (item: RecommendItem) => {
   };
 
   onBeforeMount(async () =>{
-    checkLoginStatus()
-    checkTokenValidity()
     // 监听storage变化（用于其他页面登录后的状态同步）
+    //localStorage.removeItem('token')
+    checkLoginStatus()
     loadMore();
     window.addEventListener('storage', checkLoginStatus)
-    if (localStorage.getItem('isLoggedIn') === 'true') {
+    window.addEventListener('scroll', handleScroll); // 监听窗口滚动事件
+    if (localStorage.getItem('isLoggedIn') === 'true' && localStorage.getItem('token')) {
       fetchUserInfo();
     }
   });
 
   // 移除监听器
   onUnmounted(() => {
-   window.removeEventListener('storage', checkLoginStatus)
-  })
-
-  onMounted(() => {
-    window.addEventListener('scroll', handleScroll); // 监听窗口滚动事件
-    loadMore(); // 初次加载数据
-  });
-
-  onUnmounted(() => {
     window.removeEventListener('scroll', handleScroll); // 移除滚动事件监听
+    window.removeEventListener('storage', checkLoginStatus)
   });
 
   interface Category {
@@ -359,30 +369,6 @@ const handleRecommendClick = (item: RecommendItem) => {
     emoji: string
   }
 
-  const categories = ref<Category[]>([
-    { id: 1, name: '买入', emoji: '📚' },
-    { id: 2, name: '卖出', emoji: '📱' },
-    { id: 3, name: '租出', emoji: '👗' },
-    { id: 4, name: '借入', emoji: '🏠' },
-  ])
-
-  const handleCategoryClick = (category: Category) => {
-    console.log('点击分类:', category.name);
-  // 根据分类名称跳转到对应的路由
-  const routeMap: Record<string, string> = {
-    '买入': '/buy',
-    '卖出': '/show',
-    '租出': '/lend',
-    '借入': '/borrow',
-  };
-
-  const targetRoute = routeMap[category.name];
-  if (targetRoute) {
-    router.push(targetRoute);
-  } else {
-    console.error('未找到对应的路由:', category.name);
-  }
-  }
 
 </script>
 
