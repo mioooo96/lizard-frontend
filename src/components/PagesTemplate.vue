@@ -145,7 +145,7 @@
       toast.error('请先登录！', { autoClose: 2000 });
       setTimeout(() => {
         router.push('/login');
-      }, 2000);
+      }, 3000);
       return;
     } 
     // 跳转到发布页面
@@ -158,7 +158,7 @@
       toast.error('请先登录！', { autoClose: 2000 });
       setTimeout(() => {
         router.push('/login');
-      }, 2000);
+      }, 3000);
       return;
     } 
     const route1 = router.resolve({

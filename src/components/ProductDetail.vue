@@ -149,11 +149,15 @@ const fetchPostDetail = async () => {
   const isLoggedIn = localStorage.getItem('isLoggedIn');
   if (!token) {
     toast.error('用户未登录，请先登录！');
-    router.push('/login');
+    setTimeout(() => {
+      router.replace("/login")
+    }, 3000)
   }
   if (!isLoggedIn) {
     toast.error('用户未登录，请先登录！');
-    router.push('/login');
+    setTimeout(() => {
+      router.replace("/login")
+    }, 3000)
   }
   try {
     const response = await axios.get('/api/post/'+postId, { 
@@ -190,11 +194,15 @@ const fetchPosterInfo = async (userId: number) => {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     if (!token) {
       toast.error('用户未登录，请先登录！');
-      router.push('/login');
+      setTimeout(() => {
+      router.replace("/login")
+    }, 3000)
     }
     if (!isLoggedIn) {
       toast.error('用户未登录，请先登录！');
-      router.push('/login');
+      setTimeout(() => {
+      router.replace("/login")
+    }, 3000)
     }
     const response = await axios.get('/api/user/'+postDetail.userId, {
       headers: {
@@ -275,7 +283,7 @@ const checkLoginStatus = () => {
 
 const handleRequest = async () => {
   if (!isLoggedIn.value) {
-    toast("请登录！3秒后跳转到登录页面...", { autoClose: 3000 })
+    toast("请登录！3秒后跳转到登录页面...", { autoClose: 2000 })
     setTimeout(() => {
       router.replace("/login")
     }, 3000)
@@ -323,7 +331,7 @@ const handleRequest = async () => {
         toast("帖子删除成功，即将跳转至主页！", { autoClose: 2000 })
         setTimeout(() => {
           router.replace("/")
-        }, 2000)
+        }, 3000)
         console.log(response.data.msg)
       } else {
         console.log(response.data.msg)

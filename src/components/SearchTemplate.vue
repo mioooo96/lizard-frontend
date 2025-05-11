@@ -151,7 +151,7 @@
       toast.error('请先登录！', { autoClose: 2000 });
       setTimeout(() => {
         router.push('/login');
-      }, 2000);
+      }, 3000);
       return;
     } 
     router.push('/CreatePost');
@@ -163,7 +163,7 @@
       toast.error('请先登录！', { autoClose: 2000 });
       setTimeout(() => {
         router.push('/login');
-      }, 2000);
+      }, 3000);
       return;
     } 
     const route1 = router.resolve({

@@ -84,7 +84,7 @@
       toast('注册成功！',{autoClose: 1000})
       setTimeout(() => {
         router.push('/login');
-      }, 1000);
+      }, 2000);
     } else {
       toast(response.data.msg)
     }

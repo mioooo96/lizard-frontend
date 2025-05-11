@@ -84,7 +84,7 @@ export default {
           confirmPassword.value = "";
           setTimeout(() => {
             router.push('/');
-          }, 1000);
+          }, 2000);
         } else {
           toast(response.data.msg);
         }

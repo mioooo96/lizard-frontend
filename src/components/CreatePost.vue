@@ -185,13 +185,15 @@ const submitPost = async () => {
     });
 
     if (response.data.code === 1) {
-      toast.success('帖子创建成功！帖子ID: ' + response.data.data);
+      toast.success('帖子创建成功！帖子ID: ' + response.data.data, {
+        autoClose: 1000,
+      });
 
       // 上传剩余图片
       const postId = response.data.data;
       await uploadAdditionalImages(postId);
 
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // 等待 1 秒
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // 等待 1 秒
       // 跳转回 Home 页面
       router.push('/');
     } else {

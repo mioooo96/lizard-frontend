@@ -67,7 +67,7 @@
       toast('登录成功！',{autoClose: 1000})
       setTimeout(() => {
         router.push('/');
-      }, 1000);
+      }, 2000);
     } else {
       toast(response.data.msg,{autoClose: 3000})
     }
